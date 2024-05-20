@@ -1234,6 +1234,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 								cs_X_Jpsi2_px->push_back(-99999);
 								cs_X_Jpsi2_py->push_back(-99999);
 								cs_X_Jpsi2_pz->push_back(-99999);
+								cs_X_Jpsi2_massErr->push_back(-9);
 								}
 							}
 // Notice that Jpsi1 and Pion information is actually the same as before, because JPiPi MC fit doesn't change them by default. If you do what to change them, please check JPiPi MC fit and information stored carefully.
