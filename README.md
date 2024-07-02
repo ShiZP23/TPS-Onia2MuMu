@@ -6,11 +6,11 @@ Aimed at providing measurement result for proton structure studies and TPS studi
 
 ## Developer
 
-Wang Chi (Eric100911), undergraduate at Zhili College, Tsinghua University.
-Cheng Xing, undergraduate at Zhili College, Tsinghua University.
-Shi Zhenpeng, undergraduate at Dept. of Physics, Tsinghua University.
+* Wang Chi (Eric100911), undergraduate at Zhili College, Tsinghua University.
+* Cheng Xing, undergraduate at Zhili College, Tsinghua University.
+* Shi Zhenpeng, undergraduate at Dept. of Physics, Tsinghua University.
 
-Supervised under Prof. Hu Zhen.
+Supervised under Prof. Hu Zhen at Dept. of Physics, Tsinghua University.
 
 ## Branch Info
 
