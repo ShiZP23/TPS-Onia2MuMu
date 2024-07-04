@@ -2,18 +2,29 @@
 
 Measuring the cross section of prompt $J/\psi+J/\psi+\Upsilon$ prodution in pp collision on CMS.
 
-Aimed at providing measurement result for proton structure studies and TPS studies, as .
+Aimed at providing measurement result for studying parton correlation in proton and background estimation for BSM searches.
 
-## Developer
+## Development 
 
+Using CMSSW_13_0_2. Inherited most of the code from AliceQuen/Onia2MuMu. (cr. Qin Junkai at Dept. of Physics, Tsinghua University)
+
+### Contributors
 * Wang Chi (Eric100911), undergraduate at Zhili College, Tsinghua University.
 * Cheng Xing, undergraduate at Zhili College, Tsinghua University.
 * Shi Zhenpeng, undergraduate at Dept. of Physics, Tsinghua University.
 
 Supervised under Prof. Hu Zhen at Dept. of Physics, Tsinghua University.
 
-## Branch Info
+## Overview
 
-Branch "master" is mostly inherited from the analysis code used by Qin Junkai (AliceQuen) in X3872 + Jpsi Xsec analysis.
+### Event Selection Procedure
 
-Branch "Eric-Dev" will be mostly used by Wang Chi during development.
+1. Match $\mu^+\mu^-$ pairs using vertex fitting. (Track geometry only.)
+
+2. Create $J/\psi$ and $\Upsilon$ candidates using $\mu^+\mu^-$ pairs. (Dynamics required. Mass window, pT selection and other restrictions required.)
+
+3. Matching $J/\psi$ and $\Upsilon$ candidates from one single vertex . (Track geometry only. May check $c\tau$ distribution.)
+
+### Efficiency
+
+### Systematics
