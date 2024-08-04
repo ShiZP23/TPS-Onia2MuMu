@@ -28,3 +28,14 @@ Supervised under Prof. Hu Zhen at Dept. of Physics, Tsinghua University.
 ### Efficiency
 
 ### Systematics
+
+## Code Framework
+
+### Event Selection Procedure
+
+1. `void LoadMC()` Load MC results if `doMC == true`.
+2. Some other code for initialization 
+
+### Efficiency
+
+### Systematics

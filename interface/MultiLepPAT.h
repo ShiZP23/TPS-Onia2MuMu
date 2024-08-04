@@ -14,6 +14,9 @@
  *  [Note]
  *      20240626 [Eric Wang]
  *          Upsilon is abbreviated as "Ups"
+ *      20240705 [Eric Wang]
+ *          Adding new member functions for the following purposes:
+ *              Judging if the event 
 ******************************************************************************/
 
 
@@ -108,6 +111,7 @@
 //
 
 using std::vector;
+using std::string;
 using namespace edm;
 using namespace reco;
 using namespace std;
@@ -119,10 +123,25 @@ public:
 
   
 private:
+    // Framework methods
     virtual void beginJob() ;
     virtual void beginRun(Run const & iRun, EventSetup const& iSetup);
     virtual void analyze(const Event&, const EventSetup&);
     virtual void endJob() ;
+
+    // Essential methods (ctau)
+    virtual double GetcTau( RefCountedKinematicVertex&   decayVrtx, 
+                            RefCountedKinematicParticle& kinePart, 
+                            Vertex&                             bs );
+    virtual double GetcTauErr( RefCountedKinematicVertex& decayVrtx, 
+                               RefCountedKinematicParticle& kinePart, 
+                               Vertex& bs                              );
+    
+    // Essential methods (deltaR)
+    double deltaR(double eta1, double phi1, double eta2, double phi2);
+    
+
+
 
  
     //add token here
@@ -145,51 +164,7 @@ private:
     }
 
     //get ctau from beamspot
-    virtual double GetcTau( RefCountedKinematicVertex&   decayVrtx, 
-                            RefCountedKinematicParticle& kinePart, 
-                            Vertex&                             bs ){	
-        TVector3 vtx;
-        TVector3 pvtx;
-        vtx.SetXYZ((*decayVrtx).position().x(), (*decayVrtx).position().y(), 0);
-        pvtx.SetXYZ(bs.position().x(), bs.position().y(), 0);
-        VertexDistanceXY vdistXY;
-        TVector3 pperp(kinePart->currentState().globalMomentum().x(),
-	    	   kinePart->currentState().globalMomentum().y(), 0);
-
-        TVector3 vdiff = vtx - pvtx;
-        double cosAlpha = vdiff.Dot(pperp) / (vdiff.Perp() * pperp.Perp());
-        Measurement1D distXY = vdistXY.distance(Vertex(*decayVrtx), Vertex(bs));
-        double ctauPV = distXY.value() * cosAlpha * kinePart->currentState().mass() / pperp.Perp();
-        return ctauPV;    
-    }
-
-    virtual double GetcTauErr(  RefCountedKinematicVertex& decayVrtx, 
-                                RefCountedKinematicParticle& kinePart, 
-                                Vertex& bs                              ){       
-        TVector3 pperp(kinePart->currentState().globalMomentum().x(),
-		               kinePart->currentState().globalMomentum().y(), 
-                       0                                              );
-        AlgebraicVector vpperp(3);
-        vpperp[0] = pperp.x();
-        vpperp[1] = pperp.y();
-        vpperp[2] = 0.;
-
-        GlobalError v1e = (Vertex(*decayVrtx)).error();
-        GlobalError v2e = bs.error();
-        AlgebraicSymMatrix vXYe = asHepMatrix(v1e.matrix()) + asHepMatrix(v2e.matrix());
-        double ctauErrPV = sqrt(vXYe.similarity(vpperp)) * kinePart->currentState().mass() / (pperp.Perp2());
-
-        return ctauErrPV;    
-    }
-  
-
-    double deltaR(double eta1, double phi1, double eta2, double phi2) {
-        double deta = eta1 - eta2;
-        double dphi = phi1 - phi2;
-        while (dphi >   M_PI) dphi -= 2*M_PI;
-        while (dphi <= -M_PI) dphi += 2*M_PI;
-        return sqrt(deta*deta + dphi*dphi);
-    }
+    
     
     // Member data
 
@@ -226,12 +201,25 @@ private:
     
     bool resolveAmbiguity_; 
     bool addXlessPrimaryVertex_;
-    vector<string>      TriggersForJpsi_;
-    vector<string>      FiltersForJpsi_;
-    vector<string>      TriggersForUpsilon_;
-    vector<string>      FiltersForUpsilon_;
+
+    // Using enumeration to define trigger types [Annotation by Eric Wang, 20240626] 
+    const unsigned int trigCount = 50;
+    const unsigned int trigTypeCount = 3;
+
+    enum class trigType{JPSI, UPS, PHI};
+
+    // Identifying triggers and filters with their name [Annotation by Eric Wang, 20240626]
+    vector<string>      TriggersFor_[trigTypeCount];
+    vector<string>      FiltersFor_[trigTypeCount];
     
-    int JpsiMatchTrig[50], UpsilonMatchTrig[50];
+    int matchTrigRes_Type[trigCount][trigTypeCount];
+    int matchTrigRes_All[trigCount]
+
+
+    virtual void getAllTriggers(   const edm::Handle<edm::TriggerResults>&     HLTresult);
+    virtual bool muonMatchTrigType(const edm::View<pat::Muon>::const_iterator& muonIter
+                                   const vector<string>& trigNames, 
+                                         trigType        type                          );
     
     vector<string>      TriggersForMatching_;
     vector<string>      FiltersForMatching_;
