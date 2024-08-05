@@ -114,7 +114,6 @@ using std::vector;
 using std::string;
 using namespace edm;
 using namespace reco;
-using namespace std;
 
 class MultiLepPAT : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:

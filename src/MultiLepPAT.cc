@@ -25,6 +25,7 @@
 
 // system include files
 #include <memory>
+#include <utility>
 #include "TLorentzVector.h"
 // user include files
 #include "../interface/MultiLepPAT.h"
@@ -742,6 +743,88 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 	}
 
 	//  get X and MyFourMuon cands
+
+    /**************************************************************************
+     * [Section]
+     *      Muon pairing
+     * [Implementation]
+     *      - Loop over all muons to perform pairing:
+     *          - Preselction: Opposite charge & Mass window
+    **************************************************************************/
+
+    using muIter = edm::View<pat::Muon>::const_iterator;
+
+    std::vector< std::pair<muIter, muIter> > MuPair_Jpsi;
+    std::vector< std::pair<muIter, muIter> > MuPair_Ups;
+    vector<RefCountedKinematicParticle> diMuonCandMuons;
+
+    // Loop over all muons to perform pairing [Annotated by Eric Wang, 20240804]
+    for(muIter iMuon1 = thePATMuonHandle->begin(); iMuon1 != thePATMuonHandle->end(); ++iMuon1)
+    {
+        TrackRef muTrk1_ptr = iMuon1->track();
+        if (muTrk1_ptr.isNull())
+        {
+            continue;
+        }
+        for(muIter iMuon2 = iMuon1 + 1; iMuon2 != thePATMuonHandle->end(); ++iMuon2){
+            TrackRef muTrk2_ptr = iMuon2->track();
+            if (muTrk2_ptr.isNull()){
+                continue;
+            }
+
+            // Preselction: Opposite charge [Annotated by Eric Wang, 20240804]
+            if((iMuon1->charge() + iMuon2->charge()) != 0){
+                continue;
+            }
+
+            // Preselction: Invariant mass [Annotated by Eric Wang, 20240804]
+            double_t diMuonMass = (iMuon1->p4() + iMuon2->p4()).mass();
+            bool diMuPassJpsi = (1.  < diMuonMass && diMuonMass < 4.);
+            bool diMuPassUps  = (8.5 < diMuonMass && diMuonMass < 11.5);
+            if((!diMuPassJpsi) && (!diMuPassUps)){
+                continue;
+            }
+
+            // Vertex matching [Annotated by Eric Wang, 20240804]
+            reco::Track recoMuTrk1 = *iMuon1->track();
+            reco::Track recoMuTrk2 = *iMuon2->track();
+            TransientTrack muon1TT(muTrk1_ptr, &(bFieldHandle)); // MINIAOD
+            TransientTrack muon2TT(muTrk2_ptr, &(bFieldHandle)); // MINIAOD
+            KinematicParticleFactoryFromTransientTrack diMuonFactory;
+            // The mass of a muon and the insignificant mass sigma
+			// to avoid singularities in the covariance matrix.
+			ParticleMass muon_mass  = myMuMass;     // PDG mass
+			float        muon_sigma = myMuMasserr;  // PDG mass error
+			// Initial chi2 and ndf before kinematic fits.
+			float chi = 0.;
+			float ndf = 0.;
+            // Setup before fitting [Annotated by Eric Wang, 20240804]
+			diMuonCandMuons.push_back(diMuonFactory.particle(muon1TT, muon_mass, chi, ndf, muon_sigma));
+			diMuonCandMuons.push_back(diMuonFactory.particle(muon2TT, muon_mass, chi, ndf, muon_sigma));
+			KinematicParticleVertexFitter diMuonFitter;
+			RefCountedKinematicTree diMuonVertexFitTree;
+			Error_t = false;
+
+            // Fit the dimuon track. Exceptions are caught [Annotated by Eric Wang, 20240804]
+            try{
+                diMuonVertexFitTree = diMuonFitter.fit(muonParticles);
+            }
+            catch(...){
+                Error_t = true;
+                std::cout << "Error at muon pair matching." << std::endl;
+            }
+
+            // Check if the fitting is valid [Annotated by Eric Wang, 20240804]
+            if(Error_t || !diMuonVertexFitTree->isValid()){
+                continue;
+            }
+
+            //
+
+            // Clear the muon pair candidate after fitting [Annotated by Eric Wang, 20240804]
+            diMuonCandMuons.clear();
+        }
+    }
 
     // Fit the first pair of muons [Annotated by Eric Wang, 20240704]
     // TO_IMPR_CPP11 (for(auto ...)) [Tagged by Eric Wang, 20240704]
@@ -2232,7 +2315,7 @@ virtual void MultiLepPAT::getAllTriggers(const edm::Handle<edm::TriggerResults>&
  *      [Eric Wang, 20240705]
  *          
 ******************************************************************************/
-virtual bool MultiLepPAT::muonMatchTrigType(const edm::View<pat::Muon>::const_iterator& muonIter
+virtual bool MultiLepPAT::muonMatchTrigType(const edm::View<pat::Muon>::const_iterator& muIter
                                             const vector<string>& trigNames, 
                                                   trigType        type                          ){
 
