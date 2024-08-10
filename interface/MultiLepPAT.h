@@ -186,7 +186,11 @@ private:
 
         return ctauErrPV;    
     }
-  
+
+    virtual bool tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
+                                  KinematicParticleFactoryFromTransientTrack& arg_MuFactory,
+                                  const MagneticField&                        arg_bField,
+                                  const TrackRef& arg_Trk1,   const TrackRef& arg_Trk2       );
 
     double deltaR(double eta1, double phi1, double eta2, double phi2) {
         double deta = eta1 - eta2;

@@ -669,6 +669,38 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 		return;
 	}
 
+    // Selection for the muon candidates
+    for(auto iMuon1 =  thePATMuonHandle->begin(); 
+             iMuon1 != thePATMuonHandle->end(); ++iMuon1){
+        TrackRef muTrack1 = iMuon1->track();
+        if (muTrack1.isNull()){
+            continue;
+        }
+        reco::Track recoMu1 = *iMuon1->track();
+        for(auto iMuon2  = iMuon1 + 1; 
+                 iMuon2 != thePATMuonHandle->end(); ++iMuon2){
+            TrackRef muTrack2 = iMuon2->track();
+            if (muTrack2.isNull()){
+                continue;
+            }
+            reco::Track recoMu2 = *iMuon2->track();
+            // Charge requirement.
+            if ((iMuon1->charge() + iMuon2->charge()) != 0){
+				continue;
+			}
+            // Dynamics selection.
+            // Involves more calculation and is therefore done after kinematics.
+            if (!(1. < (iMuon1->p4() + iMuon2->p4()).mass()
+                    && (iMuon1->p4() + iMuon2->p4()).mass() < 4.)){
+                continue;
+            }
+            // Transient tracks.
+            TransientTrack muon1TT(muTrack1, &(bFieldHandle));
+            TransientTrack muon2TT(muTrack2, &(bFieldHandle));
+            KinematicParticleFactoryFromTransientTrack pmumuFactory;
+        }
+    }
+
 	//  get X and MyFourMuon cands
 	for (edm::View<pat::Muon>::const_iterator iMuon1 = thePATMuonHandle->begin(); // MINIAOD
 		 iMuon1 != thePATMuonHandle->end(); ++iMuon1)
@@ -1743,6 +1775,16 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 	cs_X_JPiPi_massErr_X3872->clear();
 } // analyze
 // 
+
+bool MultiLepPAT::tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
+                                   KinematicParticleFactoryFromTransientTrack& arg_MuFactory,
+                                   const MagneticField&                        arg_bField,
+                                   const TrackRef& arg_Trk1,   const TrackRef& arg_Trk2        ){
+    TransientTrack transTrk1(arg_Trk1, &(*arg_bField));
+    TransientTrack transTrk1(arg_Trk1, &(*arg_bField));
+    arg_MuonResults.push_back(arg_MuFactory.particle(transTrk1, muon_mass, chi, ndf, muon_sigma));
+    return true;
+}
 // ------------ method called once each job just before starting event loop  ------------
 void MultiLepPAT::beginRun(edm::Run const &iRun, edm::EventSetup const &iSetup)
 {
