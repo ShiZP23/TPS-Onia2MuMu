@@ -240,6 +240,16 @@ private:
     bool Debug_;
     double Chi_Track_;
 
+    // PDG 2023
+	constexpr double myJpsiMass = 3.0969,   myJpsiMasserr = 0.00004;
+	constexpr double myUpsMass  = 9.4603,   myUpsMasserr  = 0.0003;
+	constexpr double myPhiMass  = 1.019455, myPhiMasserr    = 0.000020;
+	constexpr double myMuMass = 0.1056583745;
+	constexpr double myMuMasserr = myMuMass * 1e-6;
+	constexpr double myPimass = 0.13957039;
+	// try
+	constexpr double myPimasserr = myPimass * 1e-6;
+
     // Constructing TTree object [Annotation by Eric Wang, 20240626]
     
     TTree* X_One_Tree_;

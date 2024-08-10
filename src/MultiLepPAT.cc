@@ -284,15 +284,7 @@ MultiLepPAT::~MultiLepPAT()
 // ------------ method called to for each event  ------------
 void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetup)
 {
-	// PDG 2023
-	const double myJpsiMass = 3.0969,   myJpsiMasserr = 0.00004;
-	const double myUpsMass  = 9.4603,   myUpsMasserr  = 0.0003;
-	const double myPhiMass  = 1.019455, myPhiMasserr    = 0.000020;
-	const double myMuMass = 0.1056583745;
-	const double myMuMasserr = myMuMass * 1e-6;
-	const double myPimass = 0.13957039;
-	// try
-	const double myPimasserr = myPimass * 1e-6;
+	
 
     // Load the MC results [Annotated by Eric Wang, 20240704]
 
