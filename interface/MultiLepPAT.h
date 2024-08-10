@@ -178,6 +178,8 @@ private:
                                   const MagneticField&                        arg_bField,
                                   const TrackRef arg_Trk1,     const TrackRef arg_Trk2       );
 
+    virtual bool muonPairToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults);
+
     
     // Member data
 

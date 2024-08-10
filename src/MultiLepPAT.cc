@@ -729,10 +729,9 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 	double vtxProbPreCut = 1.0e-7;
 
     // booleans marking whether the muon pair satisfies the mass constraint
-    bool isJpsiMu12 = false;
-    bool isJpsiMu34 = false;
-    bool isJpsiMu56 = false;
-    bool isUpsMu78 = false;
+    bool isJpsiMuPair = false;
+    bool isUpsMuPair  = false;
+    bool isGoodVtxFit = false;
 
     // Muon factory
     KinematicParticleFactoryFromTransientTrack muPairFactory;
@@ -743,7 +742,12 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 		return;
 	}
 
-    using vectParticle = vector<RefCountedKinematicParticle>;
+    // Intermittent storage for the muon pair [Annotated by Eric Wang, 20240704]
+    std::vector<RefCountedKinematicParticle> transMuonPair;
+    ParticleMass muMass = myMuMass;
+    float muMassSigma   = myMuMassErr;
+    float chi2 = 0.;
+	float ndof = 0.;
 
     // Selection for the muon candidates
     for(auto iMuon1 =  thePATMuonHandle->begin(); 
@@ -752,28 +756,42 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
         if (muTrack1.isNull()){
             continue;
         }
-        reco::Track recoMu1 = *iMuon1->track();
+        // Build transient track and store.
+        TransientTrack transTrk1(muTrack1, &(*bFieldHandle));
+        transMuonPair.push_back(muPairFactory.particle(transTrk1, muMass, chi2, ndof, muMassSigma));
+
+        // Next muon candidate.
         for(auto iMuon2  = iMuon1 + 1; 
                  iMuon2 != thePATMuonHandle->end(); ++iMuon2){
+            // Build transient track and store.
             TrackRef muTrack2 = iMuon2->track();
             if (muTrack2.isNull()){
                 continue;
             }
-            reco::Track recoMu2 = *iMuon2->track();
             // Charge requirement.
             if ((iMuon1->charge() + iMuon2->charge()) != 0){
 				continue;
 			}
             // Dynamics selection.
             // Involves more calculation and is therefore done after kinematics.
-            if (!(1. < (iMuon1->p4() + iMuon2->p4()).mass()
-                    && (iMuon1->p4() + iMuon2->p4()).mass() < 4.)){
+            isJpsiMuPair = (1. < (iMuon1->p4() + iMuon2->p4()).mass()
+                              && (iMuon1->p4() + iMuon2->p4()).mass() < 4.);
+            isUpsMuPair  = (8. < (iMuon1->p4() + iMuon2->p4()).mass()
+                              && (iMuon1->p4() + iMuon2->p4()).mass() < 12.);
+            if((!isJpsiMuPair) && (!isUpsMuPair)){
                 continue;
             }
-            vectParticle muons;
-            tracksToMuonPair(muons, muPairFactory, muTrack1, muTrack2);
+            // Vertex fitting.
+            transMuonPair.push_back(muPairFactory.particle(transTrk2, muMass, chi2, ndof, muMassSigma));
+            if(!muonPairToVtx(transMuonPair)){
+                continue;
+            }
+            // Passing all the checks, store the muon pair as pointers.
             
+            // Clear the transient muon pair for the next pair.
+            transMuonPair.pop_back();
         }
+        transMuonPair.pop_back();
     }
 
 	//  get X and MyFourMuon cands
@@ -1952,7 +1970,7 @@ void MultiLepPAT::tracksToMuonPair(vector<RefCountedKinematicParticle>&        a
                                    const MagneticField&                        arg_bField,
                                    const TrackRef arg_Trk1,     const TrackRef arg_Trk2        ){
     TransientTrack transTrk1(arg_Trk1, &(*arg_bField));
-    TransientTrack transTrk1(arg_Trk1, &(*arg_bField));
+    TransientTrack transTrk2(arg_Trk2, &(*arg_bField));
     // Parameters for muon
     ParticleMass muMass = myMuMass;
     float muMassSigma   = myMuMassErr;
@@ -1962,6 +1980,45 @@ void MultiLepPAT::tracksToMuonPair(vector<RefCountedKinematicParticle>&        a
     arg_MuonResults.push_back(arg_MuFactory.particle(transTrk2, muMass, chi2, ndof, muMassSigma));
     return ;
 }
+
+/******************************************************************************
+ * [Name of function]  
+ *      muonPairToVtx
+ * [Description]  
+ *      Construct muons from tracks.
+ *      Assuming muon mass and mass error as PDG 2023 values.
+ *      Adds reconstructed muons to the arg_MuonResults.
+ * [Parameters]
+ *      vector<RefCountedKinematicParticle>&        arg_MuonResults
+ *          - The vector to which reconstructed muons are added.
+ *      KinematicParticleFactoryFromTransientTrack& arg_MuFactory
+ *          - The class used to reconstruct muons.
+ *      const MagneticField&                        arg_bField,
+ *          - Magnetic field used in reconstruction.
+ *      const TrackRef&                             arg_Trk1, arg_Trk2  
+ *          - Tracks identified as muons.      
+ * [Return value]
+ *      (void)
+ * [Note]
+ *          
+******************************************************************************/
+
+virtual bool muonPairToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults){
+    KinematicParticleVertexFitter fitter;
+    RefCountedKinematicTree vertexFitTree;
+    bool fitError = false;
+    try{
+        vertexFitTree = fitter.fit(arg_MuonResults);
+    }catch(...){
+        fitError = true;
+        std::cout << "error at muonPairToVtx" << std::endl;
+    }
+    if (fitError || !vertexFitTree->isValid()){
+        return false;
+    }
+    return true;
+}
+
 // ------------ method called once each job just before starting event loop  ------------
 void MultiLepPAT::beginRun(edm::Run const &iRun, edm::EventSetup const &iSetup)
 {
