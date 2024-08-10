@@ -750,13 +750,16 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
      * [Implementation]
      *      - Loop over all muons to perform pairing:
      *          - Preselction: Opposite charge & Mass window
+     * [Note]
+     *      - Record and access muons with pointers to pat::muon objects.
+     *      - For quarkonia, consider using pointers to 
     **************************************************************************/
 
-    using muIter = edm::View<pat::Muon>::const_iterator;
+    using muPtr = *pat::Muon;
 
-    std::vector< std::pair<muIter, muIter> > MuPair_Jpsi;
-    std::vector< std::pair<muIter, muIter> > MuPair_Ups;
-    vector<RefCountedKinematicParticle> diMuonCandMuons;
+    std::vector< std::pair<muPtr, muPtr> > MuPair_Jpsi;
+    std::vector< std::pair<muPtr, muPtr> > MuPair_Ups;
+    std::vector<RefCountedKinematicParticle> diMuonCandMuons;
     TrackRef muTrk1_ptr, muTrk2_ptr;
 
     // Loop over all muons to perform pairing [Annotated by Eric Wang, 20240804]
@@ -1177,7 +1180,8 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 							RefCountedKinematicParticle JPiPi_vFit_noMC = JPiPiVertexFitTree->currentParticle();
 							RefCountedKinematicVertex   JPiPi_vFit_vertex_noMC = JPiPiVertexFitTree->currentDecayVertex();
 
-							double JPiPi_vtxprob = ChiSquaredProbability((double)(JPiPi_vFit_vertex_noMC->chiSquared()), (double)(JPiPi_vFit_vertex_noMC->degreesOfFreedom()));
+							double JPiPi_vtxprob = ChiSquaredProbability((double)(JPiPi_vFit_vertex_noMC->chiSquared()), 
+                                                                         (double)(JPiPi_vFit_vertex_noMC->degreesOfFreedom()));
 							if (JPiPi_vFit_noMC->currentState().mass() > 4.5)
 							{
 								continue;
@@ -1406,13 +1410,13 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                                 cs_X_JPiPi_py->push_back(JPiPi_vFit_cs_vtx->currentState().kinematicParameters().momentum().y());
                                 cs_X_JPiPi_pz->push_back(JPiPi_vFit_cs_vtx->currentState().kinematicParameters().momentum().z());
 								if (JPiPi_vFit_cs_vtx->currentState().kinematicParametersError().matrix()(6, 6) > 0)
-                                                                {
-                                                                        cs_X_JPiPi_massErr->push_back(sqrt(JPiPi_vFit_cs_vtx->currentState().kinematicParametersError().matrix()(6, 6)));
-                                                                }
-                                                                else
-                                                                {
-                                                                        cs_X_JPiPi_massErr->push_back(-9);
-                                                                }
+                                {
+                                    cs_X_JPiPi_massErr->push_back(sqrt(JPiPi_vFit_cs_vtx->currentState().kinematicParametersError().matrix()(6, 6)));
+                                }
+                                else
+                                {
+                                    cs_X_JPiPi_massErr->push_back(-9);
+                                }
 								// Save Jpsi and Pion MassConstraint
 								RefCountedKinematicParticle JPiPi_pi1_cs, JPiPi_pi2_cs;
                                 KinematicParameters JPiPi_pi1_KP_cs, JPiPi_pi2_KP_cs;
@@ -1442,7 +1446,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 								    cs_X_Jpsi2_mass->push_back(Jpsi2_vFit_cs->currentState().mass());
 								    cs_X_Jpsi2_VtxProb->push_back(Jpsi2_vtxprob_cs);
 								    cs_X_Jpsi2_Chi2->push_back(double(Jpsi2_vFit_vertex_cs->chiSquared()));
-                                                                    cs_X_Jpsi2_ndof->push_back(double(Jpsi2_vFit_vertex_cs->degreesOfFreedom())); 
+                                    cs_X_Jpsi2_ndof->push_back(double(Jpsi2_vFit_vertex_cs->degreesOfFreedom())); 
 								    cs_X_Jpsi2_px->push_back(mymumupara2_cs.momentum().x());
 								    cs_X_Jpsi2_py->push_back(mymumupara2_cs.momentum().y());
 								    cs_X_Jpsi2_pz->push_back(mymumupara2_cs.momentum().z());
@@ -1456,14 +1460,14 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 								}
 								}else
 								{
-								    cs_X_Jpsi2_mass->push_back(-9);
-								    cs_X_Jpsi2_VtxProb->push_back(-9);
-								    cs_X_Jpsi2_Chi2->push_back(-9);
-                                                                    cs_X_Jpsi2_ndof->push_back(-9); 
-								    cs_X_Jpsi2_px->push_back(-99999);
-								    cs_X_Jpsi2_py->push_back(-99999);
-								    cs_X_Jpsi2_pz->push_back(-99999);
-								    cs_X_Jpsi2_massErr->push_back(-9);
+                                    cs_X_Jpsi2_mass->push_back(-9);
+                                    cs_X_Jpsi2_VtxProb->push_back(-9);
+                                    cs_X_Jpsi2_Chi2->push_back(-9);
+                                    cs_X_Jpsi2_ndof->push_back(-9); 
+                                    cs_X_Jpsi2_px->push_back(-99999);
+                                    cs_X_Jpsi2_py->push_back(-99999);
+                                    cs_X_Jpsi2_pz->push_back(-99999);
+                                    cs_X_Jpsi2_massErr->push_back(-9);
 								}
 							}
 // Notice that Jpsi1 and Pion information is actually the same as before, because JPiPi MC fit doesn't change them by default. If you do what to change them, please check JPiPi MC fit and information stored carefully.

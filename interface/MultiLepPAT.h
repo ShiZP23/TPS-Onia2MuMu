@@ -120,6 +120,16 @@ public:
     explicit MultiLepPAT(const ParameterSet&);
     ~MultiLepPAT();
 
+    /***
+     * [Class]
+     *    MuPairInfo
+    */
+    struct MuPairInfo {
+        std::unique_ptr<pat::Muon> muPtr1, muPtr2;
+        RefCountedKinematicParticle parent;
+        RefCountedKinematicVertex   vertex;
+        double_t vtxChi2, vtxDOF, vtxProb;
+    }
   
 private:
     // Framework methods
