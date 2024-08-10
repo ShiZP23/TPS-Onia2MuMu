@@ -176,7 +176,7 @@ private:
     virtual void tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
                                   KinematicParticleFactoryFromTransientTrack& arg_MuFactory,
                                   const MagneticField&                        arg_bField,
-                                  const TrackRef& arg_Trk1,   const TrackRef& arg_Trk2       );
+                                  const TrackRef arg_Trk1,     const TrackRef arg_Trk2       );
 
     
     // Member data

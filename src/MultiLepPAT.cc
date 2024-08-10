@@ -264,12 +264,12 @@ MultiLepPAT::MultiLepPAT(const edm::ParameterSet &iConfig)
 	  // mybxlumicorr(0), myrawbxlumi(0)
 {
 	// get token here for four-muon;
-	gtRecordToken_ = consumes<L1GlobalTriggerReadoutRecord>(edm::InputTag("gtDigis"));
-	gtbeamspotToken_ = consumes<BeamSpot>(edm::InputTag("offlineBeamSpot"));
+	gtRecordToken_     = consumes<L1GlobalTriggerReadoutRecord>(edm::InputTag("gtDigis"));
+	gtbeamspotToken_   = consumes<BeamSpot>(edm::InputTag("offlineBeamSpot"));
 	gtprimaryVtxToken_ = consumes<VertexCollection>(edm::InputTag("offlineSlimmedPrimaryVertices")); //  MINIAOD
-	gtpatmuonToken_ = consumes<edm::View<pat::Muon>>(edm::InputTag("slimmedMuons"));				 //  MINIAOD
-	gttriggerToken_ = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults::HLT"));
-	trackToken_ = consumes<edm::View<pat::PackedCandidate>>(edm::InputTag("packedPFCandidates")); //  MINIAOD
+	gtpatmuonToken_    = consumes<edm::View<pat::Muon>>(edm::InputTag("slimmedMuons"));				 //  MINIAOD
+	gttriggerToken_    = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults::HLT"));
+	trackToken_        = consumes<edm::View<pat::PackedCandidate>>(edm::InputTag("packedPFCandidates")); //  MINIAOD
 	genParticlesToken_ = consumes<reco::GenParticleCollection>(edm::InputTag("genParticles"));
 }
 
@@ -728,11 +728,22 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 	double pionDRcut = 0.7;
 	double vtxProbPreCut = 1.0e-7;
 
+    // booleans marking whether the muon pair satisfies the mass constraint
+    bool isJpsiMu12 = false;
+    bool isJpsiMu34 = false;
+    bool isJpsiMu56 = false;
+    bool isUpsMu78 = false;
+
+    // Muon factory
+    KinematicParticleFactoryFromTransientTrack muPairFactory;
+
 	// get the four moun fit, but first also fit dimuon
 	if (thePATMuonHandle->size() < 4)
 	{
 		return;
 	}
+
+    using vectParticle = vector<RefCountedKinematicParticle>;
 
     // Selection for the muon candidates
     for(auto iMuon1 =  thePATMuonHandle->begin(); 
@@ -759,10 +770,9 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                     && (iMuon1->p4() + iMuon2->p4()).mass() < 4.)){
                 continue;
             }
-            // Transient tracks.
-            TransientTrack muon1TT(muTrack1, &(bFieldHandle));
-            TransientTrack muon2TT(muTrack2, &(bFieldHandle));
-            KinematicParticleFactoryFromTransientTrack pmumuFactory;
+            vectParticle muons;
+            tracksToMuonPair(muons, muPairFactory, muTrack1, muTrack2);
+            
         }
     }
 
@@ -1940,7 +1950,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 void MultiLepPAT::tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
                                    KinematicParticleFactoryFromTransientTrack& arg_MuFactory,
                                    const MagneticField&                        arg_bField,
-                                   const TrackRef& arg_Trk1,   const TrackRef& arg_Trk2        ){
+                                   const TrackRef arg_Trk1,     const TrackRef arg_Trk2        ){
     TransientTrack transTrk1(arg_Trk1, &(*arg_bField));
     TransientTrack transTrk1(arg_Trk1, &(*arg_bField));
     // Parameters for muon

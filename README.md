@@ -34,7 +34,14 @@ Supervised under Prof. Hu Zhen at Dept. of Physics, Tsinghua University.
 ### Event Selection Procedure
 
 1. `void LoadMC()` Load MC results if `doMC == true`.
-2. Some other code for initialization 
+2. Some other code for initialization
+3. Import trigger results and save for possible trigger matching.
+4. Harvest muons from tracks. Loop over muon pairs.
+5. For muon pair candidataes, apply a crude selection with "opposite-charge criterion" and mass window cut. ( For $J/\psi$, consider mass range $[1.0, 4.0]$. For $\Upsilon$, consider mass range $[8.0, 12.0]$. )
+6. Apply kinematic fitting for each pair to vertices. 
+7. Store valid muon pairs by category. ($J/\psi$ or $\Upsilon$)
+8. Use non-overlapping muon pairs to form $J/\psi$ and $\Upsilon$ candidates. (Careful not to directly store iterators! Use pointers instead.)
+9. Store the candidates and corresponding muon pairs.
 
 ### Efficiency
 
