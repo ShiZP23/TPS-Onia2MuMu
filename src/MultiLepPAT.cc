@@ -1916,14 +1916,41 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 } // analyze
 // 
 
-bool MultiLepPAT::tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
+/******************************************************************************
+ * [Name of function]  
+ *      tracksToMuonPair
+ * [Description]  
+ *      Construct muons from tracks.
+ *      Assuming muon mass and mass error as PDG 2023 values.
+ *      Adds reconstructed muons to the arg_MuonResults.
+ * [Parameters]
+ *      vector<RefCountedKinematicParticle>&        arg_MuonResults
+ *          - The vector to which reconstructed muons are added.
+ *      KinematicParticleFactoryFromTransientTrack& arg_MuFactory
+ *          - The class used to reconstruct muons.
+ *      const MagneticField&                        arg_bField,
+ *          - Magnetic field used in reconstruction.
+ *      const TrackRef&                             arg_Trk1, arg_Trk2  
+ *          - Tracks identified as muons.      
+ * [Return value]
+ *      (void)
+ * [Note]
+ *          
+******************************************************************************/
+void MultiLepPAT::tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
                                    KinematicParticleFactoryFromTransientTrack& arg_MuFactory,
                                    const MagneticField&                        arg_bField,
                                    const TrackRef& arg_Trk1,   const TrackRef& arg_Trk2        ){
     TransientTrack transTrk1(arg_Trk1, &(*arg_bField));
     TransientTrack transTrk1(arg_Trk1, &(*arg_bField));
-    arg_MuonResults.push_back(arg_MuFactory.particle(transTrk1, muon_mass, chi, ndf, muon_sigma));
-    return true;
+    // Parameters for muon
+    ParticleMass muMass = myMuMass;
+    float muMassSigma   = myMuMassErr;
+    float chi2 = 0.;
+	float ndof = 0.;
+    arg_MuonResults.push_back(arg_MuFactory.particle(transTrk1, muMass, chi2, ndof, muMassSigma));
+    arg_MuonResults.push_back(arg_MuFactory.particle(transTrk2, muMass, chi2, ndof, muMassSigma));
+    return ;
 }
 // ------------ method called once each job just before starting event loop  ------------
 void MultiLepPAT::beginRun(edm::Run const &iRun, edm::EventSetup const &iSetup)
@@ -2250,7 +2277,7 @@ double MultiLepPAT::deltaR(double eta1, double phi1, double eta2, double phi2) {
 /******************************************************************************
  * [Name of function]  
  *      getAllTriggers
- * [Function]  
+ * [Description]   
  *      Get all triggers from the trigger results and categorize them
  * [Parameters]
  *      HLTresult                       trigger results from EDM
@@ -2268,7 +2295,7 @@ virtual void MultiLepPAT::getAllTriggers(const edm::Handle<edm::TriggerResults>&
 /******************************************************************************
  * [Name of function]  
  *      muonMatchTrigType
- * [Function]  
+ * [Description]   
  *      
  * [Parameters]
  *      HLTresult                       trigger results from EDM
