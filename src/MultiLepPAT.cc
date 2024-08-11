@@ -21,6 +21,14 @@
  *                                  readability and efficiency
  *                                  (e.g. auto, range-based for loop)
  *          Github copilot is used for code and annotation completion.
+ *      
+ *      20240811 [Eric Wang]
+ *          The underlying core of edm::View<T> is actually a std::vector<T>.
+ *          This fact may help with writing more efficient code.
+ *          It took me some time to realize that I must sort out the muon pairs
+ *          before I can proceed with the JPsi and Upsilon reconstruction and 
+ *          vertex matching. It would prove too troublesome to cover all 
+ *          combinations of muon pairs in the "multi-layer-for-loop" structure.
 ******************************************************************************/
 
 // system include files
@@ -749,6 +757,11 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     float chi2 = 0.;
 	float ndof = 0.;
 
+    // Candidates of muon pairs from Jpsi or Upsilon
+    using mu_ptr = *pat::Muon;
+    std::vector< std::pair<mu_ptr, mu_ptr> > muPairCand_Jpsi;
+    std::vector< std::pair<mu_ptr, mu_ptr> > muPairCand_Ups;
+
     // Selection for the muon candidates
     for(auto iMuon1 =  thePATMuonHandle->begin(); 
              iMuon1 != thePATMuonHandle->end(); ++iMuon1){
@@ -787,7 +800,12 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                 continue;
             }
             // Passing all the checks, store the muon pair as pointers.
-            
+            if(isJpsiMuPair){
+                muPairCand_Jpsi.push_back(std::make_pair(&(*iMuon1), &(*iMuon2)));
+            }
+            if(isUpsMuPair){
+                muPairCand_Ups.push_back(std::make_pair(&(*iMuon1), &(*iMuon2)));
+            }
             // Clear the transient muon pair for the next pair.
             transMuonPair.pop_back();
         }
