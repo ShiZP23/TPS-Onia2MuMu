@@ -744,8 +744,8 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     // Muon factory
     KinematicParticleFactoryFromTransientTrack muPairFactory;
 
-	// get the four moun fit, but first also fit dimuon
-	if (thePATMuonHandle->size() < 4)
+    // Will be working reco from 3 pairs of muons. 
+	if (thePATMuonHandle->size() < 6)
 	{
 		return;
 	}
@@ -757,10 +757,23 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     float chi2 = 0.;
 	float ndof = 0.;
 
+    /**************************************************************************
+     * [Section]
+     *      Muon pairing and preselection with vertex fitting
+     * [Implementation]
+     *      - Loop over all existing muon pairs.
+     *      - Apply kinematic and mass window constraints.
+     *      - Fit the vertex to judge.
+     *      - Classify muons pairs as Jpsi or Upsilon candidates with mass.
+     * [Note]
+     *      The intermidiate storage for muon pair stores the muons as 
+     *      RefCountedKinematicParticle. This saves repeated reco.
+    **************************************************************************/
+
     // Candidates of muon pairs from Jpsi or Upsilon
-    using mu_ptr = *pat::Muon;
-    std::vector< std::pair<mu_ptr, mu_ptr> > muPairCand_Jpsi;
-    std::vector< std::pair<mu_ptr, mu_ptr> > muPairCand_Ups;
+    using muon_t = RefCountedKinematicParticle;
+    std::vector< std::pair<muon_t, muon_t> > muPairCand_Jpsi;
+    std::vector< std::pair<muon_t, muon_t> > muPairCand_Ups;
 
     // Selection for the muon candidates
     for(auto iMuon1 =  thePATMuonHandle->begin(); 
@@ -794,17 +807,20 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             if((!isJpsiMuPair) && (!isUpsMuPair)){
                 continue;
             }
-            // Vertex fitting.
-            transMuonPair.push_back(muPairFactory.particle(transTrk2, muMass, chi2, ndof, muMassSigma));
+            transMuonPair.push_back(
+                muPairFactory.particle(transTrk2, muMass, chi2, ndof, muMassSigma));
+            // Judging with vertex fitting.
             if(!muonPairToVtx(transMuonPair)){
                 continue;
             }
-            // Passing all the checks, store the muon pair as pointers.
+            // Passing all the checks, store the muon pair as pairs of RefCountedKinematicParticle.
             if(isJpsiMuPair){
-                muPairCand_Jpsi.push_back(std::make_pair(&(*iMuon1), &(*iMuon2)));
+                muPairCand_Jpsi.push_back(
+                    std::make_pair(transMuonPair[0], transMuonPair[1]));
             }
             if(isUpsMuPair){
-                muPairCand_Ups.push_back(std::make_pair(&(*iMuon1), &(*iMuon2)));
+                muPairCand_Ups.push_back(
+                    std::make_pair(transMuonPair[0], transMuonPair[1]));
             }
             // Clear the transient muon pair for the next pair.
             transMuonPair.pop_back();
@@ -814,6 +830,24 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
 	//  get X and MyFourMuon cands
 
+    /**************************************************************************
+     * [Section]
+     *      Jpsi and Upsilon reconstruction and fitting.
+     * [Implementation]
+     *      - Loop over all existing muon pairs.
+     *      - Apply kinematic and mass window constraints.
+     *      - Fit the vertex to judge.
+     * [Note]
+     *      Mass constriant is not applied to any quarkonia candidates.
+    **************************************************************************/
+
+    for(auto muPairIter_Jpsi1  = muPairCand_Jpsi.begin(); 
+             muPairIter_Jpsi1 != muPairCand_Jpsi.end();  muPairIter_Jpsi1++){
+        for(auto muPairIter_Jpsi2  = muPairIter_Jpsi1 + 1; 
+                 muPairIter_Jpsi2 != muPairCand_Jpsi.end(); muPairIter_Jpsi2++){
+            
+        }
+    }
 
     // Fit the first pair of muons [Annotated by Eric Wang, 20240704]
     // TO_IMPR_CPP11 (for(auto ...)) [Tagged by Eric Wang, 20240704]
