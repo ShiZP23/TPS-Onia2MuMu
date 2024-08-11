@@ -771,9 +771,9 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     **************************************************************************/
 
     // Candidates of muon pairs from Jpsi or Upsilon
-    using muon_t = RefCountedKinematicParticle;
-    std::vector< std::pair<muon_t, muon_t> > muPairCand_Jpsi;
-    std::vector< std::pair<muon_t, muon_t> > muPairCand_Ups;
+    using muon_t   = RefCountedKinematicParticle;
+    using muPair_t = vector<muon_t>;
+    std::vector< muPair_t > muPairCand_Jpsi, muPairCand_Ups;
 
     // Selection for the muon candidates
     for(auto iMuon1 =  thePATMuonHandle->begin(); 
@@ -815,12 +815,10 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             }
             // Passing all the checks, store the muon pair as pairs of RefCountedKinematicParticle.
             if(isJpsiMuPair){
-                muPairCand_Jpsi.push_back(
-                    std::make_pair(transMuonPair[0], transMuonPair[1]));
+                muPairCand_Jpsi.push_back(transMuonPair);
             }
             if(isUpsMuPair){
-                muPairCand_Ups.push_back(
-                    std::make_pair(transMuonPair[0], transMuonPair[1]));
+                muPairCand_Ups.push_back(transMuonPair);
             }
             // Clear the transient muon pair for the next pair.
             transMuonPair.pop_back();
@@ -840,7 +838,9 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
      * [Note]
      *      Mass constriant is not applied to any quarkonia candidates.
     **************************************************************************/
-
+    std::vector<RefCountedKinematicParticles> tmpMuPair_Jpsi1;
+    std::vector<RefCountedKinematicParticles> tmpMuPair_Jpsi2;
+    std::vector<RefCountedKinematicParticles> tmpMuPair_Ups;  
     for(auto muPairIter_Jpsi1  = muPairCand_Jpsi.begin(); 
              muPairIter_Jpsi1 != muPairCand_Jpsi.end();  muPairIter_Jpsi1++){
         for(auto muPairIter_Jpsi2  = muPairIter_Jpsi1 + 1; 
@@ -849,7 +849,16 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             if(isOverlapPair(*muPairIter_Jpsi1, *muPairIter_Jpsi2)){
                 continue;
             }
-            
+            for(auto muPairIter_Ups = muPairCand_Ups.begin(); 
+                     muPairIter_Ups != muPairCand_Ups.end(); muPairIter_Ups++){
+                // Check if the muon pairs overlap again.
+                if( isOverlapPair(*muPairIter_Jpsi1, *muPairIter_Ups) || 
+                    isOverlapPair(*muPairIter_Jpsi2, *muPairIter_Ups)   ){
+                    continue;
+                }
+                // Start constructing the fit tree.
+                
+            }
         }
     }
 
