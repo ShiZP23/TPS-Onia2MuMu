@@ -172,19 +172,24 @@ private:
         return -1;
     }
 
-    
+    // Some useful methods for maintenance, readability and elegance    
     virtual void tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
                                   KinematicParticleFactoryFromTransientTrack& arg_MuFactory,
                                   const MagneticField&                        arg_bField,
                                   const TrackRef arg_Trk1,     const TrackRef arg_Trk2       ) const;
 
     virtual bool muonPairToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults) const;
+    
+    virtual bool getVtxPara(const RefCountedKinematicTree&     arg_VtxTree,
+                                  RefCountedKinematicParticle& res_Part,
+                                  RefCountedKinematicVertex&   res_Vtx,
+                                  double&                      res_massErr) const;
 
-    // To avoid overlapping muon pairs [Annotation by Eric Wang, 20240811]
-    using muPair_t = std::vector<RefCountedKinematicParticle>;
-
-    virtual bool isOverlapPair(const muPair_t& arg_MuonPair1, 
-                               const muPair_t& arg_MuonPair2 ) const;
+    // To avoid overlapping muon pairs
+    using muon_t   = RefCountedKinematicParticle;
+    using muList_t = std::pair< vector<muon_t>, vector<uint> >;
+    virtual bool isOverlapPair(const muList_t& arg_MuonPair1, 
+                               const muList_t& arg_MuonPair2 ) const;
     
     // Member data
 

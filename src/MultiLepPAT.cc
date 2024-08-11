@@ -752,6 +752,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
     // Intermittent storage for the muon pair [Annotated by Eric Wang, 20240704]
     std::vector<RefCountedKinematicParticle> transMuonPair;
+    std::vector<uint>                        transMuPairId;
     ParticleMass muMass = myMuMass;
     float muMassSigma   = myMuMassErr;
     float chi2 = 0.;
@@ -772,8 +773,8 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
     // Candidates of muon pairs from Jpsi or Upsilon
     using muon_t   = RefCountedKinematicParticle;
-    using muPair_t = vector<muon_t>;
-    std::vector< muPair_t > muPairCand_Jpsi, muPairCand_Ups;
+    using muList_t = std::pair< vector<muon_t>, vector<uint> >;
+    std::vector< muList_t > muPairCand_Jpsi, muPairCand_Ups;
 
     // Selection for the muon candidates
     for(auto iMuon1 =  thePATMuonHandle->begin(); 
@@ -785,6 +786,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
         // Build transient track and store.
         TransientTrack transTrk1(muTrack1, &(*bFieldHandle));
         transMuonPair.push_back(muPairFactory.particle(transTrk1, muMass, chi2, ndof, muMassSigma));
+        transMuPairId.push_back(iMuon1 - thePATMuonHandle->begin());
 
         // Next muon candidate.
         for(auto iMuon2  = iMuon1 + 1; 
@@ -798,7 +800,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             if ((iMuon1->charge() + iMuon2->charge()) != 0){
 				continue;
 			}
-            // Dynamics selection.
+            // Dynamics selection. A very crude selection.
             // Involves more calculation and is therefore done after kinematics.
             isJpsiMuPair = (1. < (iMuon1->p4() + iMuon2->p4()).mass()
                               && (iMuon1->p4() + iMuon2->p4()).mass() < 4.);
@@ -807,18 +809,21 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             if((!isJpsiMuPair) && (!isUpsMuPair)){
                 continue;
             }
-            transMuonPair.push_back(
-                muPairFactory.particle(transTrk2, muMass, chi2, ndof, muMassSigma));
+            transMuonPair.push_back(muPairFactory.particle(transTrk2,  muMass, 
+                                                           chi2, ndof, muMassSigma) );
+            transMuPairId.push_back(iMuon2 - thePATMuonHandle->begin());
             // Judging with vertex fitting.
             if(!muonPairToVtx(transMuonPair)){
                 continue;
             }
             // Passing all the checks, store the muon pair as pairs of RefCountedKinematicParticle.
             if(isJpsiMuPair){
-                muPairCand_Jpsi.push_back(transMuonPair);
+                muPairCand_Jpsi.push_back(
+                    std::make_pair(transMuonPair, transMuPairId) );
             }
             if(isUpsMuPair){
-                muPairCand_Ups.push_back(transMuonPair);
+                muPairCand_Ups.push_back(
+                    std::make_pair(transMuonPair, transMuPairId) );
             }
             // Clear the transient muon pair for the next pair.
             transMuonPair.pop_back();
@@ -838,25 +843,34 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
      * [Note]
      *      Mass constriant is not applied to any quarkonia candidates.
     **************************************************************************/
-    RefCountedKinematicTree tmpOniaTree_Jpsi1;
-    RefCountedKinematicTree tmpOniaTree_Jpsi2;
-    RefCountedKinematicTree tmpOniaTree_Ups;  
+    // Classes for the fitting process.
+    RefCountedKinematicTree vtxFitTree_Jpsi1;
+    RefCountedKinematicTree vtxFitTree_Jpsi2;
+    RefCountedKinematicTree vtxFitTree_Ups;  
     KinematicParticleVertexFitter tmpOniaFitter;
     bool errorInRefit = false;
+    // Classes for intermidary particles (Jpsi and Upsilon)
+    RefCountedKinematicParticle Jpsi1_Fit_noMC, Jpsi2_Fit_noMC, Ups_Fit_noMC;
+    RefCountedKinematicVertex   Jpsi1_Vtx_noMC, Jpsi2_Vtx_noMC, Ups_Vtx_noMC;
+    KinematicParameters         Jpsi1_Para,     Jpsi2_Para,     Ups_Para;
 
-    for(auto muPairIter_Jpsi1  = muPairCand_Jpsi.begin(); 
-             muPairIter_Jpsi1 != muPairCand_Jpsi.end();  muPairIter_Jpsi1++){
-        for(auto muPairIter_Jpsi2  = muPairIter_Jpsi1 + 1; 
-                 muPairIter_Jpsi2 != muPairCand_Jpsi.end(); muPairIter_Jpsi2++){
+    // Marker for fitting
+    bool   isGoodJpsi1,   isGoodJpsi2,   isGoodUps;
+    double Jpsi1_massErr, Jpsi2_massErr, Ups_massErr; // Also used as an indicator for fit result.
+
+    for(auto muPair_Jpsi1  = muPairCand_Jpsi.begin(); 
+             muPair_Jpsi1 != muPairCand_Jpsi.end();  muPair_Jpsi1++){
+        for(auto muPair_Jpsi2  = muPair_Jpsi1 + 1; 
+                 muPair_Jpsi2 != muPairCand_Jpsi.end(); muPair_Jpsi2++){
             // Check if the muon pairs overlap.
-            if(isOverlapPair(*muPairIter_Jpsi1, *muPairIter_Jpsi2)){
+            if(isOverlapPair(*muPair_Jpsi1, *muPair_Jpsi2)){
                 continue;
             }
-            for(auto muPairIter_Ups = muPairCand_Ups.begin(); 
-                     muPairIter_Ups != muPairCand_Ups.end(); muPairIter_Ups++){
+            for(auto muPair_Ups  = muPairCand_Ups.begin(); 
+                     muPair_Ups != muPairCand_Ups.end(); muPair_Ups++){
                 // Check if the muon pairs overlap again.
-                if( isOverlapPair(*muPairIter_Jpsi1, *muPairIter_Ups) || 
-                    isOverlapPair(*muPairIter_Jpsi2, *muPairIter_Ups)   ){
+                if( isOverlapPair(*muPair_Jpsi1, *muPair_Ups) || 
+                    isOverlapPair(*muPair_Jpsi2, *muPair_Ups)   ){
                     continue;
                 }
                 // Start constructing the fit tree.
@@ -864,21 +878,27 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                 // Keep one try-catch block for the entire fitting process.
                 errorInRefit = false;
                 try{
-                    tmpOniaTree_Jpsi1 = tmpOniaFitter.fit(*muPairIter_Jpsi1);
-                    tmpOniaTree_Jpsi2 = tmpOniaFitter.fit(*muPairIter_Jpsi2);
-                    tmpOniaTree_Ups   = tmpOniaFitter.fit(*muPairIter_Ups);
+                    vtxFitTree_Jpsi1 = tmpOniaFitter.fit(muPair_Jpsi1->first);
+                    vtxFitTree_Jpsi2 = tmpOniaFitter.fit(muPair_Jpsi2->first);
+                    vtxFitTree_Ups   = tmpOniaFitter.fit(muPair_Ups->first);
                 } catch(...){
                     errorInRefit = true;
                     std::cout << "Error in preparation for final matching" << std::endl;
                 }
                 // Check if the fitting is valid.
-                if(errorInRefit || 
-                   !tmpOniaTree_Jpsi1->isValid() || 
-                   !tmpOniaTree_Jpsi2->isValid() || 
-                   !tmpOniaTree_Ups->isValid()      ){
+                if( errorInRefit || 
+                   !vtxFitTree_Jpsi1->isValid() || 
+                   !vtxFitTree_Jpsi2->isValid() || 
+                   !vtxFitTree_Ups->isValid()      ){
                     continue;
                 }
-                
+                // Extract the vertex and the particle parameters
+                isGoodJpsi1 = extractFitInfo(vtxFitTree_Jpsi1, 
+                                                  Jpsi1_Fit_noMC, Jpsi1_Vtx_noMC, Jpsi1_massErr);
+                isGoodJpsi2 = extractFitInfo(vtxFitTree_Jpsi2,
+                                                  Jpsi2_Fit_noMC, Jpsi2_Vtx_noMC, Jpsi2_massErr);
+                isGoodUps   = extractFitInfo(vtxFitTree_Ups,
+                                                    Ups_Fit_noMC,   Ups_Vtx_noMC,   Ups_massErr);
             }
         }
     }
