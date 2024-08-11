@@ -838,9 +838,12 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
      * [Note]
      *      Mass constriant is not applied to any quarkonia candidates.
     **************************************************************************/
-    std::vector<RefCountedKinematicParticles> tmpMuPair_Jpsi1;
-    std::vector<RefCountedKinematicParticles> tmpMuPair_Jpsi2;
-    std::vector<RefCountedKinematicParticles> tmpMuPair_Ups;  
+    RefCountedKinematicTree tmpOniaTree_Jpsi1;
+    RefCountedKinematicTree tmpOniaTree_Jpsi2;
+    RefCountedKinematicTree tmpOniaTree_Ups;  
+    KinematicParticleVertexFitter tmpOniaFitter;
+    bool errorInRefit = false;
+
     for(auto muPairIter_Jpsi1  = muPairCand_Jpsi.begin(); 
              muPairIter_Jpsi1 != muPairCand_Jpsi.end();  muPairIter_Jpsi1++){
         for(auto muPairIter_Jpsi2  = muPairIter_Jpsi1 + 1; 
@@ -857,6 +860,24 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                     continue;
                 }
                 // Start constructing the fit tree.
+                // Possible exceptions are mostly caught prior to this point.
+                // Keep one try-catch block for the entire fitting process.
+                errorInRefit = false;
+                try{
+                    tmpOniaTree_Jpsi1 = tmpOniaFitter.fit(*muPairIter_Jpsi1);
+                    tmpOniaTree_Jpsi2 = tmpOniaFitter.fit(*muPairIter_Jpsi2);
+                    tmpOniaTree_Ups   = tmpOniaFitter.fit(*muPairIter_Ups);
+                } catch(...){
+                    errorInRefit = true;
+                    std::cout << "Error in preparation for final matching" << std::endl;
+                }
+                // Check if the fitting is valid.
+                if(errorInRefit || 
+                   !tmpOniaTree_Jpsi1->isValid() || 
+                   !tmpOniaTree_Jpsi2->isValid() || 
+                   !tmpOniaTree_Ups->isValid()      ){
+                    continue;
+                }
                 
             }
         }

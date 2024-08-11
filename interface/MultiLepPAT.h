@@ -176,15 +176,15 @@ private:
     virtual void tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
                                   KinematicParticleFactoryFromTransientTrack& arg_MuFactory,
                                   const MagneticField&                        arg_bField,
-                                  const TrackRef arg_Trk1,     const TrackRef arg_Trk2       );
+                                  const TrackRef arg_Trk1,     const TrackRef arg_Trk2       ) const;
 
-    virtual bool muonPairToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults);
+    virtual bool muonPairToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults) const;
 
     // To avoid overlapping muon pairs [Annotation by Eric Wang, 20240811]
     using muPair_t = std::vector<RefCountedKinematicParticle>;
 
     virtual bool isOverlapPair(const muPair_t& arg_MuonPair1, 
-                               const muPair_t& arg_MuonPair2 );
+                               const muPair_t& arg_MuonPair2 ) const;
     
     // Member data
 
