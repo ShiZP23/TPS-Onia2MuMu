@@ -180,6 +180,16 @@ private:
 
     virtual bool muonPairToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults);
 
+    // To avoid overlapping muon pairs [Annotation by Eric Wang, 20240811]
+    using muonPair_t = std::pair<RefCountedKinematicParticle, RefCountedKinematicParticle>;
+
+    virtual bool isOverlapPair(const muonPair_t& arg_MuonPair1, 
+                               const muonPair_t& arg_MuonPair2 );
+
+    virtual bool isOverlapPair(const muonPair_t& arg_MuonPair1, 
+                               const muonPair_t& arg_MuonPair2, 
+                               const muonPair_t& arg_MuonPair3 );
+
     
     // Member data
 

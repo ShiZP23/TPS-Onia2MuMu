@@ -845,6 +845,10 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
              muPairIter_Jpsi1 != muPairCand_Jpsi.end();  muPairIter_Jpsi1++){
         for(auto muPairIter_Jpsi2  = muPairIter_Jpsi1 + 1; 
                  muPairIter_Jpsi2 != muPairCand_Jpsi.end(); muPairIter_Jpsi2++){
+            // Check if the muon pairs overlap.
+            if(isOverlapPair(*muPairIter_Jpsi1, *muPairIter_Jpsi2)){
+                continue;
+            }
             
         }
     }
