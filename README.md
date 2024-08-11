@@ -73,3 +73,10 @@ Supervised under Prof. Hu Zhen at Dept. of Physics, Tsinghua University.
 3. `git remote remove <name>` Remove the remote repository named `<name>`. This only removes the remote repository from the local repository's configuration. It does not delete the remote repository itself.
 4. `git push <name>` Push the changes to the remote repository named `<name>`. This is useful when you have multiple remote repositories. In this project, we use `origin` and `Tsinghua`. The former is on GitHub, while the the latter is a mirror repository on Tsinghua's GitLab. They are kept in sync by the project maintainers.
 5. `git push --set-upstream <name> <branch>` Push the changes to the remote repository named `<name>` and set the upstream branch to `<branch>`. This is useful when you are pushing to a new branch on the remote repository.
+
+### Working Together
+
+1. Always do `git pull` before starting off today's work!
+2. To do some development from someone else's work, consider using `git switch -c <branch>` to begin your own work on a separate branch.
+3. After finishing your work, do `git push --set-upstream <name> <branch>` to push your work to the remote repository `<name>`.
+4. To merge your work into the main branch, access the remote repository and create a pull request. The project maintainers will review your work and merge it into the main branch.
