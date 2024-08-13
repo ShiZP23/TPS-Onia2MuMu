@@ -187,22 +187,8 @@ MultiLepPAT::MultiLepPAT(const edm::ParameterSet &iConfig)
 	  mupulldXdZ_pos_ArbDef(0), mupulldYdZ_pos_ArbDef(0),
 	  mupulldXdZ_pos_ArbST(0), mupulldYdZ_pos_ArbST(0),
 	  mupulldXdZ_pos_noArb_any(0), mupulldYdZ_pos_noArb_any(0),
-	  X_mu1Idx(0), X_mu2Idx(0), X_mu3Idx(0), X_mu4Idx(0),
-	  X_mass(0), X_VtxProb(0), X_Chi2(0), X_ndof(0), X_px(0), X_py(0), X_pz(0), X_massErr(0),
-	  X_JPiPi_mass(0), X_JPiPi_VtxProb(0), X_JPiPi_Chi2(0), X_JPiPi_ndof(0), X_JPiPi_px(0), X_JPiPi_py(0), X_JPiPi_pz(0), X_JPiPi_massErr(0),
-	  X_Jpsi_1_mass(0), X_Jpsi_1_VtxProb(0), X_Jpsi_1_Chi2(0), X_Jpsi_1_ndof(0), X_Jpsi_1_px(0), X_Jpsi_1_py(0), X_Jpsi_1_pz(0), X_Jpsi_1_massErr(0),
-	  X_Jpsi_2_mass(0), X_Jpsi_2_VtxProb(0), X_Jpsi_2_Chi2(0), X_Jpsi_2_ndof(0), X_Jpsi_2_px(0), X_Jpsi_2_py(0), X_Jpsi_2_pz(0), X_Jpsi_2_massErr(0),
-	  X_JPiPi_Pi1Idx(0), X_JPiPi_Pi2Idx(0),
-	  X_JPiPi_Pi1px(0), X_JPiPi_Pi1py(0), X_JPiPi_Pi1pz(0),
-	  X_JPiPi_Pi2px(0), X_JPiPi_Pi2py(0), X_JPiPi_Pi2pz(0),
-	  // mass constrain variables on 1208
- 	cs_X_Jpsi_1_mass(0), cs_X_Jpsi_1_VtxProb(0), cs_X_Jpsi_1_Chi2(0), cs_X_Jpsi_1_ndof(0), cs_X_Jpsi_1_px(0), cs_X_Jpsi_1_py(0), cs_X_Jpsi_1_pz(0), cs_X_Jpsi_1_massErr(0),
- 	cs_X_Jpsi_2_mass(0), cs_X_Jpsi_2_VtxProb(0), cs_X_Jpsi_2_Chi2(0), cs_X_Jpsi_2_ndof(0), cs_X_Jpsi_2_px(0),  cs_X_Jpsi_2_py(0),  cs_X_Jpsi_2_pz(0), cs_X_Jpsi_2_massErr(0),
- 	cs_X_JPiPi_mass(0), cs_X_JPiPi_VtxProb(0), cs_X_JPiPi_Chi2(0), cs_X_JPiPi_ndof(0), cs_X_JPiPi_px (0), cs_X_JPiPi_py(0), cs_X_JPiPi_pz(0), cs_X_JPiPi_massErr(0),
- 	cs_X_mass_Psi2S(0), cs_X_VtxProb_Psi2S(0), cs_X_Chi2_Psi2S(0), cs_X_ndof_Psi2S(0), cs_X_px_Psi2S(0), cs_X_py_Psi2S(0), cs_X_pz_Psi2S(0), cs_X_massErr_Psi2S(0),
- 	cs_X_JPiPi_mass_Psi2S(0), cs_X_JPiPi_VtxProb_Psi2S(0), cs_X_JPiPi_Chi2_Psi2S(0), cs_X_JPiPi_ndof_Psi2S(0), cs_X_JPiPi_px_Psi2S(0), cs_X_JPiPi_py_Psi2S(0), cs_X_JPiPi_pz_Psi2S(0), cs_X_JPiPi_massErr_Psi2S(0),
-  	cs_X_mass_X3872(0), cs_X_VtxProb_X3872(0), cs_X_Chi2_X3872(0), cs_X_ndof_X3872(0), cs_X_px_X3872(0), cs_X_py_X3872(0), cs_X_pz_X3872(0), cs_X_massErr_X3872(0),
- 	cs_X_JPiPi_mass_X3872(0), cs_X_JPiPi_VtxProb_X3872(0), cs_X_JPiPi_Chi2_X3872(0), cs_X_JPiPi_ndof_X3872(0), cs_X_JPiPi_px_X3872(0), cs_X_JPiPi_py_X3872(0), cs_X_JPiPi_pz_X3872(0), cs_X_JPiPi_massErr_X3872(0),
+	  
+      
 	  // doMC
 	  MC_X_py(0),
 	  MC_X_pz(0),

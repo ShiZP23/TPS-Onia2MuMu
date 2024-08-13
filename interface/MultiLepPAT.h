@@ -329,13 +329,6 @@ private:
     // Vertex fitting [Modified by Eric Wang, 20240626]
     vector<float> *VtxProb,    *Chi2,          *ndof,          *VtxPt2;
 
-    // Secondary Jpsi's and Upsilon's kinematics fitted under mass constraints 
-    //      [Modified by Eric Wang, 20240626]
-    vector<float> *CS_Jpsi_mass,    *CS_Jpsi_VtxProb,   *CS_Jpsi_Chi2,   *CS_Jpsi_ndof,
-                  *CS_Jpsi_px,      *CS_Jpsi_py,        *CS_Jpsi_pz,     *CS_Jpsi_massErr;
-    vector<float> *CS_Ups_mass,     *CS_Ups_VtxProb,    *CS_Ups_Chi2,    *CS_Ups_ndof,
-                  *CS_Ups_px,       *CS_Ups_py,         *CS_Ups_pz,      *CS_Ups_massErr;
-
     // MC results [Modified by Eric Wang, 20240626]
     // Kinematics
     vector<float> 
