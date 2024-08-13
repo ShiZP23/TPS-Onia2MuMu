@@ -313,20 +313,21 @@ private:
     vector<float>  *mupulldXdZ_pos_ArbST, *mupulldYdZ_pos_ArbST;
     vector<float>  *mupulldXdZ_pos_noArb_any, *mupulldYdZ_pos_noArb_any;
 
+    // Muons from Jpsi and Upsilon.
+    vector<float> *Jpsi_1_mu_1_Idx, *Jpsi_1_mu_2_Idx, 
+                  *Jpsi_2_mu_1_Idx, *Jpsi_2_mu_2_Idx,
+                     *Ups_mu_1_Idx,    *Ups_mu_2_Idx;
 
-    // Index of selected muons in one event [Added by Eric Wang, 20240626]
-    // Reference: code from Wang Xining
-    vector<float> *Jpsi_mu1_Idx,    *Jpsi_mu2_Idx;
-    vector<float> *Ups_mu1_Idx,     *Ups_mu2_Idx;
+    // Reconstruced Jpsi and Upsilon.
+    vector<float> *Jpsi_1_mass, *Jpsi_1_massErr, *Jpsi_1_VtxProb, *Jpsi_1_Chi2,
+                  *Jpsi_1_ndof, *Jpsi_1_px,      *Jpsi_1_py,      *Jpsi_1_pz   ;
+    vector<float> *Jpsi_2_mass, *Jpsi_2_massErr, *Jpsi_2_VtxProb, *Jpsi_2_Chi2,
+                  *Jpsi_2_ndof, *Jpsi_2_px,      *Jpsi_2_py,      *Jpsi_2_pz   ;
+    vector<float>    *Ups_mass,    *Ups_massErr,    *Ups_VtxProb,    *Ups_Chi2,
+                     *Ups_ndof,    *Ups_px,         *Ups_py,         *Ups_pz     ;
 
     // Vertex fitting [Modified by Eric Wang, 20240626]
-    vector<float> *VtxProb,      *Chi2,           *ndof,        *VtxPt2;
-
-    // Secondary Jpsi's and Upsilon's kinematics [Modified by Eric Wang, 20240626]
-    vector<float> *Jpsi_mass,   *Jpsi_VtxProb,  *Jpsi_Chi2, *Jpsi_ndof,
-                  *Jpsi_px,     *Jpsi_py,       *Jpsi_pz,   *Jpsi_massErr;
-    vector<float> *Ups_mass,    *Ups_VtxProb,   *Ups_Chi2,  *Ups_ndof,
-                  *Ups_px,      *Ups_py,        *Ups_pz,    *Ups_massErr;
+    vector<float> *VtxProb,    *Chi2,          *ndof,          *VtxPt2;
 
     // Secondary Jpsi's and Upsilon's kinematics fitted under mass constraints 
     //      [Modified by Eric Wang, 20240626]
@@ -338,9 +339,9 @@ private:
     // MC results [Modified by Eric Wang, 20240626]
     // Kinematics
     vector<float> 
-        *MC_G1_Jpsi1_px, *MC_G1_Jpsi1_py, *MC_G1_Jpsi1_pz, *MC_G1_Jpsi1_mass,
-        *MC_G1_Jpsi2_px, *MC_G1_Jpsi2_py, *MC_G1_Jpsi2_pz, *MC_G1_Jpsi2_mass,
-        *MC_G1_Ups1_px,  *MC_G1_Ups1_py,  *MC_G1_Ups1_pz,  *MC_G1_Ups1_mass;
+        *MC_G1_Jpsi_1_px, *MC_G1_Jpsi_1_py, *MC_G1_Jpsi_1_pz, *MC_G1_Jpsi_1_mass,
+        *MC_G1_Jpsi_2_px, *MC_G1_Jpsi_2_py, *MC_G1_Jpsi_2_pz, *MC_G1_Jpsi_2_mass,
+        *MC_G1_Ups_px,    *MC_G1_Ups_py,    *MC_G1_Ups_pz,    *MC_G1_Ups_mass;
 
     // For Muon pairs, always keep the order of mu1 = mu+ and mu2 = mu-; 
     vector<float> 

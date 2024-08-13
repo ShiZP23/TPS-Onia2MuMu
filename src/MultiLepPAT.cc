@@ -6,7 +6,7 @@
  *  [Directory] 
  *      TPS-Onia2MuMu/src/MultiLepPAT.cc
  *  [Description]
- *      Make rootTuple for JPsiKKK reconstruction
+ *      Make rootTuple for Jpsi+Jpsi+Upsilon reconstruction from 6 muons
  *  [Implementation]
  *     <Notes on implementation>
  *  [Note]
@@ -190,14 +190,14 @@ MultiLepPAT::MultiLepPAT(const edm::ParameterSet &iConfig)
 	  X_mu1Idx(0), X_mu2Idx(0), X_mu3Idx(0), X_mu4Idx(0),
 	  X_mass(0), X_VtxProb(0), X_Chi2(0), X_ndof(0), X_px(0), X_py(0), X_pz(0), X_massErr(0),
 	  X_JPiPi_mass(0), X_JPiPi_VtxProb(0), X_JPiPi_Chi2(0), X_JPiPi_ndof(0), X_JPiPi_px(0), X_JPiPi_py(0), X_JPiPi_pz(0), X_JPiPi_massErr(0),
-	  X_Jpsi1_mass(0), X_Jpsi1_VtxProb(0), X_Jpsi1_Chi2(0), X_Jpsi1_ndof(0), X_Jpsi1_px(0), X_Jpsi1_py(0), X_Jpsi1_pz(0), X_Jpsi1_massErr(0),
-	  X_Jpsi2_mass(0), X_Jpsi2_VtxProb(0), X_Jpsi2_Chi2(0), X_Jpsi2_ndof(0), X_Jpsi2_px(0), X_Jpsi2_py(0), X_Jpsi2_pz(0), X_Jpsi2_massErr(0),
+	  X_Jpsi_1_mass(0), X_Jpsi_1_VtxProb(0), X_Jpsi_1_Chi2(0), X_Jpsi_1_ndof(0), X_Jpsi_1_px(0), X_Jpsi_1_py(0), X_Jpsi_1_pz(0), X_Jpsi_1_massErr(0),
+	  X_Jpsi_2_mass(0), X_Jpsi_2_VtxProb(0), X_Jpsi_2_Chi2(0), X_Jpsi_2_ndof(0), X_Jpsi_2_px(0), X_Jpsi_2_py(0), X_Jpsi_2_pz(0), X_Jpsi_2_massErr(0),
 	  X_JPiPi_Pi1Idx(0), X_JPiPi_Pi2Idx(0),
 	  X_JPiPi_Pi1px(0), X_JPiPi_Pi1py(0), X_JPiPi_Pi1pz(0),
 	  X_JPiPi_Pi2px(0), X_JPiPi_Pi2py(0), X_JPiPi_Pi2pz(0),
 	  // mass constrain variables on 1208
- 	cs_X_Jpsi1_mass(0), cs_X_Jpsi1_VtxProb(0), cs_X_Jpsi1_Chi2(0), cs_X_Jpsi1_ndof(0), cs_X_Jpsi1_px(0), cs_X_Jpsi1_py(0), cs_X_Jpsi1_pz(0), cs_X_Jpsi1_massErr(0),
- 	cs_X_Jpsi2_mass(0), cs_X_Jpsi2_VtxProb(0), cs_X_Jpsi2_Chi2(0), cs_X_Jpsi2_ndof(0), cs_X_Jpsi2_px(0),  cs_X_Jpsi2_py(0),  cs_X_Jpsi2_pz(0), cs_X_Jpsi2_massErr(0),
+ 	cs_X_Jpsi_1_mass(0), cs_X_Jpsi_1_VtxProb(0), cs_X_Jpsi_1_Chi2(0), cs_X_Jpsi_1_ndof(0), cs_X_Jpsi_1_px(0), cs_X_Jpsi_1_py(0), cs_X_Jpsi_1_pz(0), cs_X_Jpsi_1_massErr(0),
+ 	cs_X_Jpsi_2_mass(0), cs_X_Jpsi_2_VtxProb(0), cs_X_Jpsi_2_Chi2(0), cs_X_Jpsi_2_ndof(0), cs_X_Jpsi_2_px(0),  cs_X_Jpsi_2_py(0),  cs_X_Jpsi_2_pz(0), cs_X_Jpsi_2_massErr(0),
  	cs_X_JPiPi_mass(0), cs_X_JPiPi_VtxProb(0), cs_X_JPiPi_Chi2(0), cs_X_JPiPi_ndof(0), cs_X_JPiPi_px (0), cs_X_JPiPi_py(0), cs_X_JPiPi_pz(0), cs_X_JPiPi_massErr(0),
  	cs_X_mass_Psi2S(0), cs_X_VtxProb_Psi2S(0), cs_X_Chi2_Psi2S(0), cs_X_ndof_Psi2S(0), cs_X_px_Psi2S(0), cs_X_py_Psi2S(0), cs_X_pz_Psi2S(0), cs_X_massErr_Psi2S(0),
  	cs_X_JPiPi_mass_Psi2S(0), cs_X_JPiPi_VtxProb_Psi2S(0), cs_X_JPiPi_Chi2_Psi2S(0), cs_X_JPiPi_ndof_Psi2S(0), cs_X_JPiPi_px_Psi2S(0), cs_X_JPiPi_py_Psi2S(0), cs_X_JPiPi_pz_Psi2S(0), cs_X_JPiPi_massErr_Psi2S(0),
@@ -844,61 +844,93 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
      *      Mass constriant is not applied to any quarkonia candidates.
     **************************************************************************/
     // Classes for the fitting process.
-    RefCountedKinematicTree vtxFitTree_Jpsi1;
-    RefCountedKinematicTree vtxFitTree_Jpsi2;
-    RefCountedKinematicTree vtxFitTree_Ups;  
+    RefCountedKinematicTree vtxFitTree_Jpsi_1;
+    RefCountedKinematicTree vtxFitTree_Jpsi_2;
+    RefCountedKinematicTree vtxFitTree_Ups;
+    RefCountedKinematicTree vtxFitTree_Pri; 
     KinematicParticleVertexFitter tmpOniaFitter;
-    bool errorInRefit = false;
+
     // Classes for intermidary particles (Jpsi and Upsilon)
-    RefCountedKinematicParticle Jpsi1_Fit_noMC, Jpsi2_Fit_noMC, Ups_Fit_noMC;
-    RefCountedKinematicVertex   Jpsi1_Vtx_noMC, Jpsi2_Vtx_noMC, Ups_Vtx_noMC;
-    KinematicParameters         Jpsi1_Para,     Jpsi2_Para,     Ups_Para;
+    RefCountedKinematicParticle Jpsi_1_Fit_noMC, Jpsi_2_Fit_noMC, Ups_Fit_noMC;
+    RefCountedKinematicVertex   Jpsi_1_Vtx_noMC, Jpsi_2_Vtx_noMC, Ups_Vtx_noMC;
+    KinematicParameters         Jpsi_1_Para,     Jpsi_2_Para,     Ups_Para;
+    std::vector< RefCountedKinematicParticle >  interOnia;
 
-    // Marker for fitting
-    bool   isGoodJpsi1,   isGoodJpsi2,   isGoodUps;
-    double Jpsi1_massErr, Jpsi2_massErr, Ups_massErr; // Also used as an indicator for fit result.
+    // Markers for fitting
+    bool errorInRefit = false;
+    bool errorPrimary = false;
+    bool isGoodJpsi_1 = false;
+    bool isGoodJpsi_2 = false;
+    bool isGoodUps   = false;
+    bool isGoodPri   = false;
+    double Jpsi_1_massErr, Jpsi_2_massErr, Ups_massErr; // Also used as an indicator for fit result.
 
-    for(auto muPair_Jpsi1  = muPairCand_Jpsi.begin(); 
-             muPair_Jpsi1 != muPairCand_Jpsi.end();  muPair_Jpsi1++){
-        for(auto muPair_Jpsi2  = muPair_Jpsi1 + 1; 
-                 muPair_Jpsi2 != muPairCand_Jpsi.end(); muPair_Jpsi2++){
+    for(auto muPair_Jpsi_1  = muPairCand_Jpsi.begin(); 
+             muPair_Jpsi_1 != muPairCand_Jpsi.end();  muPair_Jpsi_1++){
+        for(auto muPair_Jpsi_2  = muPair_Jpsi_1 + 1; 
+                 muPair_Jpsi_2 != muPairCand_Jpsi.end(); muPair_Jpsi_2++){
             // Check if the muon pairs overlap.
-            if(isOverlapPair(*muPair_Jpsi1, *muPair_Jpsi2)){
+            if(isOverlapPair(*muPair_Jpsi_1, *muPair_Jpsi_2)){
                 continue;
             }
             for(auto muPair_Ups  = muPairCand_Ups.begin(); 
                      muPair_Ups != muPairCand_Ups.end(); muPair_Ups++){
                 // Check if the muon pairs overlap again.
-                if( isOverlapPair(*muPair_Jpsi1, *muPair_Ups) || 
-                    isOverlapPair(*muPair_Jpsi2, *muPair_Ups)   ){
+                if( isOverlapPair(*muPair_Jpsi_1, *muPair_Ups) || 
+                    isOverlapPair(*muPair_Jpsi_2, *muPair_Ups)   ){
                     continue;
                 }
+                // Initialize the fitting markers.
+                errorInRefit = false;
+                errorInRefit = false;
+                errorPrimary = false;
+                isGoodJpsi_1 = false;
+                isGoodJpsi_2 = false;
+                isGoodUps   = false;
+                isGoodPri   = false;
                 // Start constructing the fit tree.
                 // Possible exceptions are mostly caught prior to this point.
                 // Keep one try-catch block for the entire fitting process.
-                errorInRefit = false;
                 try{
-                    vtxFitTree_Jpsi1 = tmpOniaFitter.fit(muPair_Jpsi1->first);
-                    vtxFitTree_Jpsi2 = tmpOniaFitter.fit(muPair_Jpsi2->first);
+                    vtxFitTree_Jpsi_1 = tmpOniaFitter.fit(muPair_Jpsi_1->first);
+                    vtxFitTree_Jpsi_2 = tmpOniaFitter.fit(muPair_Jpsi_2->first);
                     vtxFitTree_Ups   = tmpOniaFitter.fit(muPair_Ups->first);
                 } catch(...){
                     errorInRefit = true;
                     std::cout << "Error in preparation for final matching" << std::endl;
                 }
                 // Check if the fitting is valid.
-                if( errorInRefit || 
-                   !vtxFitTree_Jpsi1->isValid() || 
-                   !vtxFitTree_Jpsi2->isValid() || 
-                   !vtxFitTree_Ups->isValid()      ){
-                    continue;
+                if( errorInRefit == false &&
+                    vtxFitTree_Jpsi_1->isValid() &&
+                    vtxFitTree_Jpsi_2->isValid() &&
+                    vtxFitTree_Ups->isValid()      ){
+                    // Extract the vertex and the particle parameters
+                    // Here, when an invalid fit is detected, the massErr is set to -9.
+                    isGoodJpsi_1 = extractFitInfo(vtxFitTree_Jpsi_1, 
+                                                      Jpsi_1_Fit_noMC, Jpsi_1_Vtx_noMC, Jpsi_1_massErr);
+                    isGoodJpsi_2 = extractFitInfo(vtxFitTree_Jpsi_2,
+                                                      Jpsi_2_Fit_noMC, Jpsi_2_Vtx_noMC, Jpsi_2_massErr);
+                    isGoodUps   = extractFitInfo(vtxFitTree_Ups,
+                                                        Ups_Fit_noMC,   Ups_Vtx_noMC,   Ups_massErr);
+                    if(isGoodJpsi_1 == true && isGoodJpsi_2 == true && isGoodUps == true){
+                        errorPrimary = false;
+                        interOnia.push_back(Jpsi_1_Fit_noMC);
+                        interOnia.push_back(Jpsi_2_Fit_noMC);
+                        interOnia.push_back(Ups_Fit_noMC);
+                        // Check if fits to the same vertex.
+                        try{
+                            vtxFitTree_Pri = tmpOniaFitter.fit(interOnia);
+                        }
+                        catch(...){
+                            errorPrimary = true;
+                            std::cout << "Error in primary vertex fitting" << std::endl;
+                        }
+                        isGoodPri = ( errorPrimary == false && vtxFitTree_Pri->isValid() );
+                    }
                 }
-                // Extract the vertex and the particle parameters
-                isGoodJpsi1 = extractFitInfo(vtxFitTree_Jpsi1, 
-                                                  Jpsi1_Fit_noMC, Jpsi1_Vtx_noMC, Jpsi1_massErr);
-                isGoodJpsi2 = extractFitInfo(vtxFitTree_Jpsi2,
-                                                  Jpsi2_Fit_noMC, Jpsi2_Vtx_noMC, Jpsi2_massErr);
-                isGoodUps   = extractFitInfo(vtxFitTree_Ups,
-                                                    Ups_Fit_noMC,   Ups_Vtx_noMC,   Ups_massErr);
+                if(isGoodPri){
+
+                }
             }
         }
     }
@@ -955,12 +987,12 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 			muonParticles.push_back(pmumuFactory.particle(muon1TT, muon_mass, chi, ndf, muon_sigma));
 			muonParticles.push_back(pmumuFactory.particle(muon2TT, muon_mass, chi, ndf, muon_sigma));
 			KinematicParticleVertexFitter mu12_fitter;
-			RefCountedKinematicTree Jpsi1VertexFitTree;
+			RefCountedKinematicTree Jpsi_1VertexFitTree;
 			Error_t = false;
 
             /******************************************************************
              * [Section]
-             *      Jpsi1 fit
+             *      Jpsi_1 fit
              * [Implementation]
              *      - Fit the first pair of muons to a single vertex.
              *      - Check if the fitting is valid (existence & VtxProb).
@@ -969,69 +1001,69 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             ******************************************************************/
 			try
 			{
-				Jpsi1VertexFitTree = mu12_fitter.fit(muonParticles);
+				Jpsi_1VertexFitTree = mu12_fitter.fit(muonParticles);
 			}catch(...)
 			{
 				Error_t = true;
-				std::cout<<"error at Jpsi1noMC"<<std::endl;
+				std::cout<<"error at Jpsi_1noMC"<<std::endl;
 			}
-			if (Error_t || !Jpsi1VertexFitTree->isValid())
+			if (Error_t || !Jpsi_1VertexFitTree->isValid())
 			{
 				continue;
 			}
-			Jpsi1VertexFitTree->movePointerToTheTop();
-			RefCountedKinematicParticle Jpsi1_vFit_noMC         = Jpsi1VertexFitTree->currentParticle();
-			RefCountedKinematicVertex   Jpsi1_vFit_vertex_noMC  = Jpsi1VertexFitTree->currentDecayVertex();
-			KinematicParameters mymumupara = Jpsi1_vFit_noMC->currentState().kinematicParameters();
+			Jpsi_1VertexFitTree->movePointerToTheTop();
+			RefCountedKinematicParticle Jpsi_1_vFit_noMC         = Jpsi_1VertexFitTree->currentParticle();
+			RefCountedKinematicVertex   Jpsi_1_vFit_vertex_noMC  = Jpsi_1VertexFitTree->currentDecayVertex();
+			KinematicParameters mymumupara = Jpsi_1_vFit_noMC->currentState().kinematicParameters();
 
             // Calculate the vertex probability from Chi2[Annotated by Eric Wang, 20240704]
-			double Jpsi1_vtxprob 
-                = ChiSquaredProbability((double)(Jpsi1_vFit_vertex_noMC->chiSquared()), 
-                                        (double)(Jpsi1_vFit_vertex_noMC->degreesOfFreedom()));
+			double Jpsi_1_vtxprob 
+                = ChiSquaredProbability((double)(Jpsi_1_vFit_vertex_noMC->chiSquared()), 
+                                        (double)(Jpsi_1_vFit_vertex_noMC->degreesOfFreedom()));
 
             // Check if the mass of the dimuon is within the range [Annotated by Eric Wang, 20240704]
-			if (Jpsi1_vFit_noMC->currentState().mass() > 3.4 
-                    || Jpsi1_vFit_noMC->currentState().mass() < 2.8)
+			if (Jpsi_1_vFit_noMC->currentState().mass() > 3.4 
+                    || Jpsi_1_vFit_noMC->currentState().mass() < 2.8)
 			{
 				continue;
 			}
 
             // Check if the vertex probability is above the limit [Annotated by Eric Wang, 20240704]
-			if (Jpsi1_vtxprob < vtxProbPreCut)
+			if (Jpsi_1_vtxprob < vtxProbPreCut)
 			{
 				continue;
 			}
 
-            // For Psi(2S) fit, apply mass constraint to Jpsi1 [Annotated by Eric Wang, 20240704]
-			// mass constrain for Jpsi1 from psi2s:
-			bool IsGoodFit_Jpsi1 = true;
-			bool IsGoodFit_Jpsi2 = true;
+            // For Psi(2S) fit, apply mass constraint to Jpsi_1 [Annotated by Eric Wang, 20240704]
+			// mass constrain for Jpsi_1 from psi2s:
+			bool IsGoodFit_Jpsi_1 = true;
+			bool IsGoodFit_Jpsi_2 = true;
 			KinematicParticleFitter mu12_fitter_cs;
-			RefCountedKinematicParticle Jpsi1_vFit_cs;
-			RefCountedKinematicVertex   Jpsi1_vFit_vertex_cs;
+			RefCountedKinematicParticle Jpsi_1_vFit_cs;
+			RefCountedKinematicVertex   Jpsi_1_vFit_vertex_cs;
 			KinematicParameters mymumupara_cs;
-			double Jpsi1_vtxprob_cs;
+			double Jpsi_1_vtxprob_cs;
 			Error_t = false;
 			try
 			{
                 // Mass constraint is added here! [Annotated by Eric Wang, 20240805]
-				Jpsi1VertexFitTree = mu12_fitter_cs.fit(Jpsi_cs, Jpsi1VertexFitTree);
+				Jpsi_1VertexFitTree = mu12_fitter_cs.fit(Jpsi_cs, Jpsi_1VertexFitTree);
 			}catch(...)
 			{
 				Error_t = true;
-				std::cout<<"error at Jpsi1Mc"<<std::endl;
+				std::cout<<"error at Jpsi_1Mc"<<std::endl;
 			}
-			if(Error_t || !Jpsi1VertexFitTree->isValid())
+			if(Error_t || !Jpsi_1VertexFitTree->isValid())
 			{
-				IsGoodFit_Jpsi1 = false;
+				IsGoodFit_Jpsi_1 = false;
 			}else
 			{
-				Jpsi1VertexFitTree->movePointerToTheTop();
-				Jpsi1_vFit_cs        = Jpsi1VertexFitTree->currentParticle();
-				Jpsi1_vFit_vertex_cs = Jpsi1VertexFitTree->currentDecayVertex();
-				mymumupara_cs = Jpsi1_vFit_cs->currentState().kinematicParameters();
-				Jpsi1_vtxprob_cs = ChiSquaredProbability((double)(Jpsi1_vFit_vertex_cs->chiSquared()), 
-                                                         (double)(Jpsi1_vFit_vertex_cs->degreesOfFreedom()));
+				Jpsi_1VertexFitTree->movePointerToTheTop();
+				Jpsi_1_vFit_cs        = Jpsi_1VertexFitTree->currentParticle();
+				Jpsi_1_vFit_vertex_cs = Jpsi_1VertexFitTree->currentDecayVertex();
+				mymumupara_cs = Jpsi_1_vFit_cs->currentState().kinematicParameters();
+				Jpsi_1_vtxprob_cs = ChiSquaredProbability((double)(Jpsi_1_vFit_vertex_cs->chiSquared()), 
+                                                         (double)(Jpsi_1_vFit_vertex_cs->degreesOfFreedom()));
 			}
             // Store the parameters of the first mu pair [Annotated by Eric Wang, 20240704]
 			TLorentzVector P4_mu1;
@@ -1094,72 +1126,72 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 					muonParticles34.push_back(pmumuFactory34.particle(muon3TT, muon_mass, chi, ndf, muon_sigma));
 					muonParticles34.push_back(pmumuFactory34.particle(muon4TT, muon_mass, chi, ndf, muon_sigma));
 					KinematicParticleVertexFitter mu34_fitter;
-					RefCountedKinematicTree Jpsi2VertexFitTree;
+					RefCountedKinematicTree Jpsi_2VertexFitTree;
 					Error_t = false;
 					try
 					{
-						Jpsi2VertexFitTree = mu34_fitter.fit(muonParticles34);
+						Jpsi_2VertexFitTree = mu34_fitter.fit(muonParticles34);
 					}catch(...)
 					{
 						Error_t = true;
-						std::cout<<"error at Jpsi2noMC"<<std::endl;
+						std::cout<<"error at Jpsi_2noMC"<<std::endl;
 					}
-					if (Error_t || !Jpsi2VertexFitTree->isValid())
+					if (Error_t || !Jpsi_2VertexFitTree->isValid())
 					{
 							continue;
 					}
-					Jpsi2VertexFitTree->movePointerToTheTop();
-					RefCountedKinematicParticle Jpsi2_vFit_noMC        = Jpsi2VertexFitTree->currentParticle();
-					RefCountedKinematicVertex   Jpsi2_vFit_vertex_noMC = Jpsi2VertexFitTree->currentDecayVertex();
-					KinematicParameters mymumupara2 = Jpsi2_vFit_noMC->currentState().kinematicParameters();
+					Jpsi_2VertexFitTree->movePointerToTheTop();
+					RefCountedKinematicParticle Jpsi_2_vFit_noMC        = Jpsi_2VertexFitTree->currentParticle();
+					RefCountedKinematicVertex   Jpsi_2_vFit_vertex_noMC = Jpsi_2VertexFitTree->currentDecayVertex();
+					KinematicParameters mymumupara2 = Jpsi_2_vFit_noMC->currentState().kinematicParameters();
 
                     // Calculate the vertex probability from Chi2[Annotated by Eric Wang, 20240704]
-					double Jpsi2_vtxprob = ChiSquaredProbability((double)(Jpsi2_vFit_vertex_noMC->chiSquared()), 
-                                                                 (double)(Jpsi2_vFit_vertex_noMC->degreesOfFreedom()));
+					double Jpsi_2_vtxprob = ChiSquaredProbability((double)(Jpsi_2_vFit_vertex_noMC->chiSquared()), 
+                                                                 (double)(Jpsi_2_vFit_vertex_noMC->degreesOfFreedom()));
 
                     // Check if the mass of the dimuon is within the range [Annotated by Eric Wang, 20240704]
-					if (Jpsi2_vFit_noMC->currentState().mass() > 3.4 
-                        || Jpsi2_vFit_noMC->currentState().mass() < 2.8)
+					if (Jpsi_2_vFit_noMC->currentState().mass() > 3.4 
+                        || Jpsi_2_vFit_noMC->currentState().mass() < 2.8)
 					{
 						continue;
 					} // change 4.0 to 3.4 in 1208
 
                     // Check if the vertex probability is above the limit [Annotated by Eric Wang, 20240704]
-					if (Jpsi2_vtxprob < vtxProbPreCut)
+					if (Jpsi_2_vtxprob < vtxProbPreCut)
 					{
 						continue;
 					}
 
-                    // For Psi(2S) fit, apply mass constraint to Jpsi2 [Annotated by Eric Wang, 20240704]
+                    // For Psi(2S) fit, apply mass constraint to Jpsi_2 [Annotated by Eric Wang, 20240704]
 					// mass constrain for Jpsi from X6900:
 					KinematicParticleFitter mu34_fitter_cs;	
-					RefCountedKinematicParticle Jpsi2_vFit_cs;
-					RefCountedKinematicVertex   Jpsi2_vFit_vertex_cs;
+					RefCountedKinematicParticle Jpsi_2_vFit_cs;
+					RefCountedKinematicVertex   Jpsi_2_vFit_vertex_cs;
 					KinematicParameters mymumupara2_cs;
-					double Jpsi2_vtxprob_cs;
+					double Jpsi_2_vtxprob_cs;
 					Error_t = false;
 					try
 					{
-						Jpsi2VertexFitTree = mu34_fitter_cs.fit(Jpsi_cs34, Jpsi2VertexFitTree);
+						Jpsi_2VertexFitTree = mu34_fitter_cs.fit(Jpsi_cs34, Jpsi_2VertexFitTree);
 					}catch(...)
 					{
 						Error_t = true;
-						std::cout<<"error at Jpsi2MC"<<std::endl;
+						std::cout<<"error at Jpsi_2MC"<<std::endl;
 					}
-					if(Error_t || !Jpsi2VertexFitTree->isValid())
+					if(Error_t || !Jpsi_2VertexFitTree->isValid())
 					{
-						IsGoodFit_Jpsi2 = false;
+						IsGoodFit_Jpsi_2 = false;
 					}else
 					{
-						Jpsi2VertexFitTree->movePointerToTheTop();
-						Jpsi2_vFit_cs        = Jpsi2VertexFitTree->currentParticle();
-						Jpsi2_vFit_vertex_cs = Jpsi2VertexFitTree->currentDecayVertex();
-						mymumupara2_cs = Jpsi2_vFit_cs->currentState().kinematicParameters();
-						Jpsi2_vtxprob_cs = ChiSquaredProbability((double)(Jpsi2_vFit_vertex_cs->chiSquared()), 
-                                                                 (double)(Jpsi2_vFit_vertex_cs->degreesOfFreedom()));
+						Jpsi_2VertexFitTree->movePointerToTheTop();
+						Jpsi_2_vFit_cs        = Jpsi_2VertexFitTree->currentParticle();
+						Jpsi_2_vFit_vertex_cs = Jpsi_2VertexFitTree->currentDecayVertex();
+						mymumupara2_cs = Jpsi_2_vFit_cs->currentState().kinematicParameters();
+						Jpsi_2_vtxprob_cs = ChiSquaredProbability((double)(Jpsi_2_vFit_vertex_cs->chiSquared()), 
+                                                                 (double)(Jpsi_2_vFit_vertex_cs->degreesOfFreedom()));
 					}
 					// psi2s
-                    // Reconstruction of the Psi(2S) from Jpsi2 and two pions [Annotated by Eric Wang, 20240704]
+                    // Reconstruction of the Psi(2S) from Jpsi_2 and two pions [Annotated by Eric Wang, 20240704]
                     // TO_IMPR_CPP11 (for(auto ...)) [Tagged by Eric Wang, 20240704]
 					for (std::vector<edm::View<pat::PackedCandidate>::const_iterator>::const_iterator iTrack1ID  = nonMuonPionTrack.begin(); // MINIAOD
 						                                                                              iTrack1ID != nonMuonPionTrack.end(); 
@@ -1335,42 +1367,42 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 							X_mu2Idx->push_back(std::distance(thePATMuonHandle->begin(), iMuon2));
 							X_mu3Idx->push_back(std::distance(thePATMuonHandle->begin(), iMuon3));
 							X_mu4Idx->push_back(std::distance(thePATMuonHandle->begin(), iMuon4));
-                            // Store the parameters of the Jpsi1 candidate [Annotated by Eric Wang, 20240704]
-							X_Jpsi1_mass->push_back(Jpsi1_vFit_noMC->currentState().mass());
-							X_Jpsi1_VtxProb->push_back(Jpsi1_vtxprob);
-							X_Jpsi1_Chi2->push_back(double(Jpsi1_vFit_vertex_noMC->chiSquared()));
-							X_Jpsi1_ndof->push_back(double(Jpsi1_vFit_vertex_noMC->degreesOfFreedom()));
-							X_Jpsi1_px->push_back(mymumupara.momentum().x());
-							X_Jpsi1_py->push_back(mymumupara.momentum().y());
-							X_Jpsi1_pz->push_back(mymumupara.momentum().z());
+                            // Store the parameters of the Jpsi_1 candidate [Annotated by Eric Wang, 20240704]
+							X_Jpsi_1_mass->push_back(Jpsi_1_vFit_noMC->currentState().mass());
+							X_Jpsi_1_VtxProb->push_back(Jpsi_1_vtxprob);
+							X_Jpsi_1_Chi2->push_back(double(Jpsi_1_vFit_vertex_noMC->chiSquared()));
+							X_Jpsi_1_ndof->push_back(double(Jpsi_1_vFit_vertex_noMC->degreesOfFreedom()));
+							X_Jpsi_1_px->push_back(mymumupara.momentum().x());
+							X_Jpsi_1_py->push_back(mymumupara.momentum().y());
+							X_Jpsi_1_pz->push_back(mymumupara.momentum().z());
 
                             // Check the fit result from the error matrix [Annotated by Eric Wang, 20240704]
-							if (Jpsi1_vFit_noMC->currentState().kinematicParametersError().matrix()(6, 6) > 0)
+							if (Jpsi_1_vFit_noMC->currentState().kinematicParametersError().matrix()(6, 6) > 0)
 							{
-								X_Jpsi1_massErr->push_back(sqrt(Jpsi1_vFit_noMC->currentState().kinematicParametersError().matrix()(6, 6)));
+								X_Jpsi_1_massErr->push_back(sqrt(Jpsi_1_vFit_noMC->currentState().kinematicParametersError().matrix()(6, 6)));
 							}
 							else
 							{
                                 // If the fit fails, store -9 [Annotated by Eric Wang, 20240704]
-								X_Jpsi1_massErr->push_back(-9);
+								X_Jpsi_1_massErr->push_back(-9);
 							}
-                            // Store the parameters of the Jpsi2 candidate [Annotated by Eric Wang, 20240704]
-							X_Jpsi2_mass->push_back(Jpsi2_vFit_noMC->currentState().mass());
-							X_Jpsi2_VtxProb->push_back(Jpsi2_vtxprob);
-							X_Jpsi2_Chi2->push_back(double(Jpsi2_vFit_vertex_noMC->chiSquared()));
-							X_Jpsi2_ndof->push_back(double(Jpsi2_vFit_vertex_noMC->degreesOfFreedom()));
-							X_Jpsi2_px->push_back(mymumupara2.momentum().x());
-							X_Jpsi2_py->push_back(mymumupara2.momentum().y());
-							X_Jpsi2_pz->push_back(mymumupara2.momentum().z());
+                            // Store the parameters of the Jpsi_2 candidate [Annotated by Eric Wang, 20240704]
+							X_Jpsi_2_mass->push_back(Jpsi_2_vFit_noMC->currentState().mass());
+							X_Jpsi_2_VtxProb->push_back(Jpsi_2_vtxprob);
+							X_Jpsi_2_Chi2->push_back(double(Jpsi_2_vFit_vertex_noMC->chiSquared()));
+							X_Jpsi_2_ndof->push_back(double(Jpsi_2_vFit_vertex_noMC->degreesOfFreedom()));
+							X_Jpsi_2_px->push_back(mymumupara2.momentum().x());
+							X_Jpsi_2_py->push_back(mymumupara2.momentum().y());
+							X_Jpsi_2_pz->push_back(mymumupara2.momentum().z());
 
                             // Check the fit result from the error matrix [Annotated by Eric Wang, 20240704]
-							if (Jpsi2_vFit_noMC->currentState().kinematicParametersError().matrix()(6, 6) > 0)
+							if (Jpsi_2_vFit_noMC->currentState().kinematicParametersError().matrix()(6, 6) > 0)
 							{
-								X_Jpsi2_massErr->push_back(sqrt(Jpsi2_vFit_noMC->currentState().kinematicParametersError().matrix()(6, 6)));
+								X_Jpsi_2_massErr->push_back(sqrt(Jpsi_2_vFit_noMC->currentState().kinematicParametersError().matrix()(6, 6)));
 							}
 							else
 							{
-								X_Jpsi2_massErr->push_back(-9);
+								X_Jpsi_2_massErr->push_back(-9);
 							}
                             // Store the parameters of the Psi(2S) (JPiPi) candidate [Annotated by Eric Wang, 20240704]
 							X_JPiPi_mass->push_back(JPiPi_vFit_noMC->currentState().mass());
@@ -1401,13 +1433,13 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 							X_JPiPi_Pi2px->push_back(X_pi2_KP.momentum().x());
 							X_JPiPi_Pi2py->push_back(X_pi2_KP.momentum().y());
 							X_JPiPi_Pi2pz->push_back(X_pi2_KP.momentum().z());
-							// JPiPi Fit with Jpsi1 MassConstraint
+							// JPiPi Fit with Jpsi_1 MassConstraint
 							bool IsGoodFit_PriVtx = true;
 							bool IsGoodFit_cs_Psi2S = true;
 							bool IsGoodFit_cs_X3872 = true;
                             // flags for fit status, if true fit succeeded, if false fit failed
                             /* Choice Logic is as below(pseudo code):
-                             * IF JPiPi fit with Jpsi1 MC == successful
+                             * IF JPiPi fit with Jpsi_1 MC == successful
                              * THEN
                              * 	IsGoodFit_PriVtx = true
                              * 	DO 
@@ -1422,13 +1454,13 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                              * 		ELSE IsGoodFit_cs_X3872 = false
                              * ELSE
                              * 	IsGoodFit_PriVtx = IsGoodFit_cs_Psi2S = IsGoodFit_cs_X3872 = false
-                             * IF IsGoodFit_PriVtx  == false THEN DO save -9 for JPiPi vtx fit and Jpsi1 Jpsi2
+                             * IF IsGoodFit_PriVtx  == false THEN DO save -9 for JPiPi vtx fit and Jpsi_1 Jpsi_2
                              * IF IsGoodFit_cs_Psi2S == true THEN DO save -9 for JPiPi to Psi2S
                              * IF IsGoodFit_cs_X3872 == true THEN DO save -9 for JPiPi to X3872
                              */
 						
 						RefCountedKinematicTree JPiPiVertexFitTree_cs_vtx; 
-						if(IsGoodFit_Jpsi1 == false)
+						if(IsGoodFit_Jpsi_1 == false)
 						{
 							IsGoodFit_PriVtx = false;
 						}else
@@ -1436,10 +1468,10 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 							vector<RefCountedKinematicParticle> JPiPiParticles_cs_vtx;
 							JPiPiParticles_cs_vtx.push_back(JPiPiFactory.particle(trackTT1, pion_mass, chi, ndf, pion_sigma));
 							JPiPiParticles_cs_vtx.push_back(JPiPiFactory.particle(trackTT2, pion_mass, chi, ndf, pion_sigma));
-							JPiPiParticles_cs_vtx.push_back(Jpsi1_vFit_cs);
+							JPiPiParticles_cs_vtx.push_back(Jpsi_1_vFit_cs);
 
 							KinematicParticleVertexFitter JPiPi_fitter_cs_vtx; 
-                            // Variables named with JPiPi_cs_vtx is for JPiPi fitted with 2pi and MassConstraint Jpsi1. 
+                            // Variables named with JPiPi_cs_vtx is for JPiPi fitted with 2pi and MassConstraint Jpsi_1. 
                             // And JPiPi_cs_Psi2S/X3872 (no _vtx and MassC target) defined below is for Final MassConstraint fit on JPiPi candidate
 							Error_t = false;
 							try
@@ -1499,54 +1531,54 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                                 JPiPi_pi2_cs = JPiPiVertexFitTree_cs_vtx->currentParticle();
                                 JPiPi_pi1_KP_cs = JPiPi_pi1_cs->currentState().kinematicParameters();
 								JPiPi_pi2_KP_cs = JPiPi_pi2_cs->currentState().kinematicParameters();
-                                cs_X_Jpsi1_mass->push_back(Jpsi1_vFit_cs->currentState().mass());
-                                cs_X_Jpsi1_VtxProb->push_back(Jpsi1_vtxprob_cs);
-								cs_X_Jpsi1_Chi2->push_back(double(Jpsi1_vFit_vertex_cs->chiSquared()));
-								cs_X_Jpsi1_ndof->push_back(double(Jpsi1_vFit_vertex_cs->degreesOfFreedom()));
-								cs_X_Jpsi1_px->push_back(mymumupara_cs.momentum().x());
-								cs_X_Jpsi1_py->push_back(mymumupara_cs.momentum().y());
-								cs_X_Jpsi1_pz->push_back(mymumupara_cs.momentum().z());
-								if (Jpsi1_vFit_cs->currentState().kinematicParametersError().matrix()(6, 6) > 0)	
+                                cs_X_Jpsi_1_mass->push_back(Jpsi_1_vFit_cs->currentState().mass());
+                                cs_X_Jpsi_1_VtxProb->push_back(Jpsi_1_vtxprob_cs);
+								cs_X_Jpsi_1_Chi2->push_back(double(Jpsi_1_vFit_vertex_cs->chiSquared()));
+								cs_X_Jpsi_1_ndof->push_back(double(Jpsi_1_vFit_vertex_cs->degreesOfFreedom()));
+								cs_X_Jpsi_1_px->push_back(mymumupara_cs.momentum().x());
+								cs_X_Jpsi_1_py->push_back(mymumupara_cs.momentum().y());
+								cs_X_Jpsi_1_pz->push_back(mymumupara_cs.momentum().z());
+								if (Jpsi_1_vFit_cs->currentState().kinematicParametersError().matrix()(6, 6) > 0)	
 								{
-									cs_X_Jpsi1_massErr->push_back(sqrt(Jpsi1_vFit_cs->currentState().kinematicParametersError().matrix()(6, 6)));
+									cs_X_Jpsi_1_massErr->push_back(sqrt(Jpsi_1_vFit_cs->currentState().kinematicParametersError().matrix()(6, 6)));
 								}
 								else
 								{
-									cs_X_Jpsi1_massErr->push_back(-9);
+									cs_X_Jpsi_1_massErr->push_back(-9);
 								}
-								if(IsGoodFit_Jpsi2 == true)
+								if(IsGoodFit_Jpsi_2 == true)
 								{
-								    cs_X_Jpsi2_mass->push_back(Jpsi2_vFit_cs->currentState().mass());
-								    cs_X_Jpsi2_VtxProb->push_back(Jpsi2_vtxprob_cs);
-								    cs_X_Jpsi2_Chi2->push_back(double(Jpsi2_vFit_vertex_cs->chiSquared()));
-                                    cs_X_Jpsi2_ndof->push_back(double(Jpsi2_vFit_vertex_cs->degreesOfFreedom())); 
-								    cs_X_Jpsi2_px->push_back(mymumupara2_cs.momentum().x());
-								    cs_X_Jpsi2_py->push_back(mymumupara2_cs.momentum().y());
-								    cs_X_Jpsi2_pz->push_back(mymumupara2_cs.momentum().z());
-								if (Jpsi2_vFit_cs->currentState().kinematicParametersError().matrix()(6, 6) > 0)
+								    cs_X_Jpsi_2_mass->push_back(Jpsi_2_vFit_cs->currentState().mass());
+								    cs_X_Jpsi_2_VtxProb->push_back(Jpsi_2_vtxprob_cs);
+								    cs_X_Jpsi_2_Chi2->push_back(double(Jpsi_2_vFit_vertex_cs->chiSquared()));
+                                    cs_X_Jpsi_2_ndof->push_back(double(Jpsi_2_vFit_vertex_cs->degreesOfFreedom())); 
+								    cs_X_Jpsi_2_px->push_back(mymumupara2_cs.momentum().x());
+								    cs_X_Jpsi_2_py->push_back(mymumupara2_cs.momentum().y());
+								    cs_X_Jpsi_2_pz->push_back(mymumupara2_cs.momentum().z());
+								if (Jpsi_2_vFit_cs->currentState().kinematicParametersError().matrix()(6, 6) > 0)
 								{
-									cs_X_Jpsi2_massErr->push_back(sqrt(Jpsi2_vFit_cs->currentState().kinematicParametersError().matrix()(6, 6)));
+									cs_X_Jpsi_2_massErr->push_back(sqrt(Jpsi_2_vFit_cs->currentState().kinematicParametersError().matrix()(6, 6)));
 								}
 								else
 								{
-									cs_X_Jpsi2_massErr->push_back(-9);
+									cs_X_Jpsi_2_massErr->push_back(-9);
 								}
 								}else
 								{
-                                    cs_X_Jpsi2_mass->push_back(-9);
-                                    cs_X_Jpsi2_VtxProb->push_back(-9);
-                                    cs_X_Jpsi2_Chi2->push_back(-9);
-                                    cs_X_Jpsi2_ndof->push_back(-9); 
-                                    cs_X_Jpsi2_px->push_back(-99999);
-                                    cs_X_Jpsi2_py->push_back(-99999);
-                                    cs_X_Jpsi2_pz->push_back(-99999);
-                                    cs_X_Jpsi2_massErr->push_back(-9);
+                                    cs_X_Jpsi_2_mass->push_back(-9);
+                                    cs_X_Jpsi_2_VtxProb->push_back(-9);
+                                    cs_X_Jpsi_2_Chi2->push_back(-9);
+                                    cs_X_Jpsi_2_ndof->push_back(-9); 
+                                    cs_X_Jpsi_2_px->push_back(-99999);
+                                    cs_X_Jpsi_2_py->push_back(-99999);
+                                    cs_X_Jpsi_2_pz->push_back(-99999);
+                                    cs_X_Jpsi_2_massErr->push_back(-9);
 								}
 							}
-// Notice that Jpsi1 and Pion information is actually the same as before, because JPiPi MC fit doesn't change them by default. If you do what to change them, please check JPiPi MC fit and information stored carefully.
+// Notice that Jpsi_1 and Pion information is actually the same as before, because JPiPi MC fit doesn't change them by default. If you do what to change them, please check JPiPi MC fit and information stored carefully.
 						}
 							// JPiPi MassConstraint Fit to Psi2S
-							if (IsGoodFit_PriVtx == true && IsGoodFit_Jpsi2 == true)
+							if (IsGoodFit_PriVtx == true && IsGoodFit_Jpsi_2 == true)
 							{ 	
 								KinematicParticleFitter JPiPi_fitter_cs_Psi2S;
 								RefCountedKinematicTree JPiPiVertexFitTree_cs_Psi2S;
@@ -1575,7 +1607,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 									KinematicParticleVertexFitter X_fitter_cs_Psi2S;
 									RefCountedKinematicTree X_VertexFitTree_cs_Psi2S;
 									vector<RefCountedKinematicParticle> X_Particles_cs_Psi2S;
-									X_Particles_cs_Psi2S.push_back(Jpsi2_vFit_cs);
+									X_Particles_cs_Psi2S.push_back(Jpsi_2_vFit_cs);
 									X_Particles_cs_Psi2S.push_back(JPiPi_vFit_cs_Psi2S);
 									Error_t = false;
 									try
@@ -1633,7 +1665,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 
 
 							// JPiPi MassConstraint Fit to X3872
-							if (IsGoodFit_PriVtx == true && IsGoodFit_Jpsi2 == true)
+							if (IsGoodFit_PriVtx == true && IsGoodFit_Jpsi_2 == true)
 							{ 	
 								KinematicParticleFitter     JPiPi_fitter_cs_X3872;
 								RefCountedKinematicTree     JPiPiVertexFitTree_cs_X3872;
@@ -1662,7 +1694,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 									KinematicParticleVertexFitter X_fitter_cs_X3872;
 									RefCountedKinematicTree X_VertexFitTree_cs_X3872;
 									vector<RefCountedKinematicParticle> X_Particles_cs_X3872;
-									X_Particles_cs_X3872.push_back(Jpsi2_vFit_cs);
+									X_Particles_cs_X3872.push_back(Jpsi_2_vFit_cs);
 									X_Particles_cs_X3872.push_back(JPiPi_vFit_cs_X3872);
 									Error_t = false;
 									try
@@ -1719,22 +1751,22 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 							}
 							if (IsGoodFit_PriVtx == false)
 							{
-								cs_X_Jpsi1_mass->push_back(-9); 
-								cs_X_Jpsi1_VtxProb->push_back(-9); 
-								cs_X_Jpsi1_Chi2->push_back(-9);
-								cs_X_Jpsi1_ndof->push_back(-9);
-								cs_X_Jpsi1_px->push_back(-99999); 
-								cs_X_Jpsi1_py->push_back(-99999); 
-								cs_X_Jpsi1_pz->push_back(-99999); 
-								cs_X_Jpsi1_massErr->push_back(-9);	
-							 	cs_X_Jpsi2_mass->push_back(-9); 
-								cs_X_Jpsi2_VtxProb->push_back(-9);
-								cs_X_Jpsi2_Chi2->push_back(-9);
-								cs_X_Jpsi2_ndof->push_back(-9); 
-								cs_X_Jpsi2_px->push_back(-99999); 
-								cs_X_Jpsi2_py->push_back(-99999); 
-	 							cs_X_Jpsi2_pz->push_back(-99999); 
-								cs_X_Jpsi2_massErr->push_back(-9);
+								cs_X_Jpsi_1_mass->push_back(-9); 
+								cs_X_Jpsi_1_VtxProb->push_back(-9); 
+								cs_X_Jpsi_1_Chi2->push_back(-9);
+								cs_X_Jpsi_1_ndof->push_back(-9);
+								cs_X_Jpsi_1_px->push_back(-99999); 
+								cs_X_Jpsi_1_py->push_back(-99999); 
+								cs_X_Jpsi_1_pz->push_back(-99999); 
+								cs_X_Jpsi_1_massErr->push_back(-9);	
+							 	cs_X_Jpsi_2_mass->push_back(-9); 
+								cs_X_Jpsi_2_VtxProb->push_back(-9);
+								cs_X_Jpsi_2_Chi2->push_back(-9);
+								cs_X_Jpsi_2_ndof->push_back(-9); 
+								cs_X_Jpsi_2_px->push_back(-99999); 
+								cs_X_Jpsi_2_py->push_back(-99999); 
+	 							cs_X_Jpsi_2_pz->push_back(-99999); 
+								cs_X_Jpsi_2_massErr->push_back(-9);
 								cs_X_JPiPi_mass->push_back(-9);
 								cs_X_JPiPi_VtxProb->push_back(-9);
 								cs_X_JPiPi_Chi2->push_back(-9);
@@ -1965,22 +1997,22 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 	X_JPiPi_py->clear();
 	X_JPiPi_pz->clear();
 	X_JPiPi_massErr->clear();
-	X_Jpsi1_mass->clear();
-	X_Jpsi1_VtxProb->clear();
-	X_Jpsi1_Chi2->clear();
-	X_Jpsi1_ndof->clear();
-	X_Jpsi1_px->clear();
-	X_Jpsi1_py->clear();
-	X_Jpsi1_pz->clear();
-	X_Jpsi1_massErr->clear();
-	X_Jpsi2_mass->clear();
-	X_Jpsi2_VtxProb->clear();
-	X_Jpsi2_Chi2->clear();
-	X_Jpsi2_ndof->clear();
-	X_Jpsi2_px->clear();
-	X_Jpsi2_py->clear();
-	X_Jpsi2_pz->clear();
-	X_Jpsi2_massErr->clear();
+	X_Jpsi_1_mass->clear();
+	X_Jpsi_1_VtxProb->clear();
+	X_Jpsi_1_Chi2->clear();
+	X_Jpsi_1_ndof->clear();
+	X_Jpsi_1_px->clear();
+	X_Jpsi_1_py->clear();
+	X_Jpsi_1_pz->clear();
+	X_Jpsi_1_massErr->clear();
+	X_Jpsi_2_mass->clear();
+	X_Jpsi_2_VtxProb->clear();
+	X_Jpsi_2_Chi2->clear();
+	X_Jpsi_2_ndof->clear();
+	X_Jpsi_2_px->clear();
+	X_Jpsi_2_py->clear();
+	X_Jpsi_2_pz->clear();
+	X_Jpsi_2_massErr->clear();
 	X_JPiPi_Pi1Idx->clear();
 	X_JPiPi_Pi2Idx->clear();
 	X_JPiPi_Pi1px->clear();
@@ -1991,22 +2023,22 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 	X_JPiPi_Pi2pz->clear();
 
 	// mass constrain variables
- 	cs_X_Jpsi1_mass->clear();
-	cs_X_Jpsi1_VtxProb->clear();
-	cs_X_Jpsi1_Chi2->clear();
-	cs_X_Jpsi1_ndof->clear();
-	cs_X_Jpsi1_px->clear();
-	cs_X_Jpsi1_py->clear();
-	cs_X_Jpsi1_pz->clear();
-	cs_X_Jpsi1_massErr->clear();
- 	cs_X_Jpsi2_mass->clear();
-	cs_X_Jpsi2_VtxProb->clear();
-	cs_X_Jpsi2_Chi2->clear();
-	cs_X_Jpsi2_ndof->clear();
-	cs_X_Jpsi2_px->clear();
-	cs_X_Jpsi2_py->clear();
-	cs_X_Jpsi2_pz->clear();
-	cs_X_Jpsi2_massErr->clear();
+ 	cs_X_Jpsi_1_mass->clear();
+	cs_X_Jpsi_1_VtxProb->clear();
+	cs_X_Jpsi_1_Chi2->clear();
+	cs_X_Jpsi_1_ndof->clear();
+	cs_X_Jpsi_1_px->clear();
+	cs_X_Jpsi_1_py->clear();
+	cs_X_Jpsi_1_pz->clear();
+	cs_X_Jpsi_1_massErr->clear();
+ 	cs_X_Jpsi_2_mass->clear();
+	cs_X_Jpsi_2_VtxProb->clear();
+	cs_X_Jpsi_2_Chi2->clear();
+	cs_X_Jpsi_2_ndof->clear();
+	cs_X_Jpsi_2_px->clear();
+	cs_X_Jpsi_2_py->clear();
+	cs_X_Jpsi_2_pz->clear();
+	cs_X_Jpsi_2_massErr->clear();
  	cs_X_JPiPi_mass->clear();
 	cs_X_JPiPi_VtxProb->clear();
 	cs_X_JPiPi_Chi2->clear();
@@ -2246,22 +2278,22 @@ void MultiLepPAT::beginJob()
 	X_One_Tree_->Branch("X_JPiPi_py", &X_JPiPi_py);
 	X_One_Tree_->Branch("X_JPiPi_pz", &X_JPiPi_pz);
 	X_One_Tree_->Branch("X_JPiPi_massErr", &X_JPiPi_massErr);
-	X_One_Tree_->Branch("X_Jpsi1_mass", &X_Jpsi1_mass);
-	X_One_Tree_->Branch("X_Jpsi1_VtxProb", &X_Jpsi1_VtxProb);
-	X_One_Tree_->Branch("X_Jpsi1_Chi2", &X_Jpsi1_Chi2);
-	X_One_Tree_->Branch("X_Jpsi1_ndof", &X_Jpsi1_ndof);
-	X_One_Tree_->Branch("X_Jpsi1_px", &X_Jpsi1_px);
-	X_One_Tree_->Branch("X_Jpsi1_py", &X_Jpsi1_py);
-	X_One_Tree_->Branch("X_Jpsi1_pz", &X_Jpsi1_pz);
-	X_One_Tree_->Branch("X_Jpsi1_massErr", &X_Jpsi1_massErr);
-	X_One_Tree_->Branch("X_Jpsi2_mass", &X_Jpsi2_mass);
-	X_One_Tree_->Branch("X_Jpsi2_VtxProb", &X_Jpsi2_VtxProb);
-	X_One_Tree_->Branch("X_Jpsi2_Chi2", &X_Jpsi2_Chi2);
-	X_One_Tree_->Branch("X_Jpsi2_ndof", &X_Jpsi2_ndof);
-	X_One_Tree_->Branch("X_Jpsi2_px", &X_Jpsi2_px);
-	X_One_Tree_->Branch("X_Jpsi2_py", &X_Jpsi2_py);
-	X_One_Tree_->Branch("X_Jpsi2_pz", &X_Jpsi2_pz);
-	X_One_Tree_->Branch("X_Jpsi2_massErr", &X_Jpsi2_massErr);
+	X_One_Tree_->Branch("X_Jpsi_1_mass", &X_Jpsi_1_mass);
+	X_One_Tree_->Branch("X_Jpsi_1_VtxProb", &X_Jpsi_1_VtxProb);
+	X_One_Tree_->Branch("X_Jpsi_1_Chi2", &X_Jpsi_1_Chi2);
+	X_One_Tree_->Branch("X_Jpsi_1_ndof", &X_Jpsi_1_ndof);
+	X_One_Tree_->Branch("X_Jpsi_1_px", &X_Jpsi_1_px);
+	X_One_Tree_->Branch("X_Jpsi_1_py", &X_Jpsi_1_py);
+	X_One_Tree_->Branch("X_Jpsi_1_pz", &X_Jpsi_1_pz);
+	X_One_Tree_->Branch("X_Jpsi_1_massErr", &X_Jpsi_1_massErr);
+	X_One_Tree_->Branch("X_Jpsi_2_mass", &X_Jpsi_2_mass);
+	X_One_Tree_->Branch("X_Jpsi_2_VtxProb", &X_Jpsi_2_VtxProb);
+	X_One_Tree_->Branch("X_Jpsi_2_Chi2", &X_Jpsi_2_Chi2);
+	X_One_Tree_->Branch("X_Jpsi_2_ndof", &X_Jpsi_2_ndof);
+	X_One_Tree_->Branch("X_Jpsi_2_px", &X_Jpsi_2_px);
+	X_One_Tree_->Branch("X_Jpsi_2_py", &X_Jpsi_2_py);
+	X_One_Tree_->Branch("X_Jpsi_2_pz", &X_Jpsi_2_pz);
+	X_One_Tree_->Branch("X_Jpsi_2_massErr", &X_Jpsi_2_massErr);
 	X_One_Tree_->Branch("X_JPiPi_Pi1Idx", &X_JPiPi_Pi1Idx);
 	X_One_Tree_->Branch("X_JPiPi_Pi2Idx", &X_JPiPi_Pi2Idx);
 	X_One_Tree_->Branch("X_JPiPi_Pi1px", &X_JPiPi_Pi1px);
@@ -2272,22 +2304,22 @@ void MultiLepPAT::beginJob()
 	X_One_Tree_->Branch("X_JPiPi_Pi2pz", &X_JPiPi_Pi2pz);
 
 	// mass constrain variables
- 	X_One_Tree_->Branch("cs_X_Jpsi1_mass", &cs_X_Jpsi1_mass);
-	X_One_Tree_->Branch("cs_X_Jpsi1_VtxProb", &cs_X_Jpsi1_VtxProb);
-	X_One_Tree_->Branch("cs_X_Jpsi1_Chi2", &cs_X_Jpsi1_Chi2);
-	X_One_Tree_->Branch("cs_X_Jpsi1_ndof", &cs_X_Jpsi1_ndof);
-	X_One_Tree_->Branch("cs_X_Jpsi1_px", &cs_X_Jpsi1_px);
-	X_One_Tree_->Branch("cs_X_Jpsi1_py", &cs_X_Jpsi1_py);
-	X_One_Tree_->Branch("cs_X_Jpsi1_pz", &cs_X_Jpsi1_pz);
-	X_One_Tree_->Branch("cs_X_Jpsi1_massErr", &cs_X_Jpsi1_massErr);
- 	X_One_Tree_->Branch("cs_X_Jpsi2_mass", &cs_X_Jpsi2_mass);
-	X_One_Tree_->Branch("cs_X_Jpsi2_VtxProb", &cs_X_Jpsi2_VtxProb);
-	X_One_Tree_->Branch("cs_X_Jpsi2_Chi2", &cs_X_Jpsi2_Chi2);
-	X_One_Tree_->Branch("cs_X_Jpsi2_ndof", &cs_X_Jpsi2_ndof);
-	X_One_Tree_->Branch("cs_X_Jpsi2_px", &cs_X_Jpsi2_px);
-	X_One_Tree_->Branch("cs_X_Jpsi2_py", &cs_X_Jpsi2_py);
-	X_One_Tree_->Branch("cs_X_Jpsi2_pz", &cs_X_Jpsi2_pz);
-	X_One_Tree_->Branch("cs_X_Jpsi2_massErr", &cs_X_Jpsi2_massErr);
+ 	X_One_Tree_->Branch("cs_X_Jpsi_1_mass", &cs_X_Jpsi_1_mass);
+	X_One_Tree_->Branch("cs_X_Jpsi_1_VtxProb", &cs_X_Jpsi_1_VtxProb);
+	X_One_Tree_->Branch("cs_X_Jpsi_1_Chi2", &cs_X_Jpsi_1_Chi2);
+	X_One_Tree_->Branch("cs_X_Jpsi_1_ndof", &cs_X_Jpsi_1_ndof);
+	X_One_Tree_->Branch("cs_X_Jpsi_1_px", &cs_X_Jpsi_1_px);
+	X_One_Tree_->Branch("cs_X_Jpsi_1_py", &cs_X_Jpsi_1_py);
+	X_One_Tree_->Branch("cs_X_Jpsi_1_pz", &cs_X_Jpsi_1_pz);
+	X_One_Tree_->Branch("cs_X_Jpsi_1_massErr", &cs_X_Jpsi_1_massErr);
+ 	X_One_Tree_->Branch("cs_X_Jpsi_2_mass", &cs_X_Jpsi_2_mass);
+	X_One_Tree_->Branch("cs_X_Jpsi_2_VtxProb", &cs_X_Jpsi_2_VtxProb);
+	X_One_Tree_->Branch("cs_X_Jpsi_2_Chi2", &cs_X_Jpsi_2_Chi2);
+	X_One_Tree_->Branch("cs_X_Jpsi_2_ndof", &cs_X_Jpsi_2_ndof);
+	X_One_Tree_->Branch("cs_X_Jpsi_2_px", &cs_X_Jpsi_2_px);
+	X_One_Tree_->Branch("cs_X_Jpsi_2_py", &cs_X_Jpsi_2_py);
+	X_One_Tree_->Branch("cs_X_Jpsi_2_pz", &cs_X_Jpsi_2_pz);
+	X_One_Tree_->Branch("cs_X_Jpsi_2_massErr", &cs_X_Jpsi_2_massErr);
  	X_One_Tree_->Branch("cs_X_JPiPi_mass", &cs_X_JPiPi_mass);
 	X_One_Tree_->Branch("cs_X_JPiPi_VtxProb", &cs_X_JPiPi_VtxProb);
 	X_One_Tree_->Branch("cs_X_JPiPi_Chi2", &cs_X_JPiPi_Chi2);
