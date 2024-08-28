@@ -1437,6 +1437,29 @@ bool MultiLepPAT::extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
     return true;
 }
 
+/******************************************************************************
+ * [Name of function]  
+ *      isOverlapPair
+ * [Description]
+ *      Check if two muon pairs overlap from the muon indices.
+ * [Parameters]
+ *      const muList_t& arg_MuonPair1, arg_MuonPair2
+ *          - The muon pairs to be compared.
+ * [Return value]
+ *      (bool)
+ *          - True if the two muon pairs do overlap.
+ * [Note]
+ *      - Uses muList_t defined in the header.
+******************************************************************************/
+
+bool MultiLepPAT::isOverlapPair(const muList_t& arg_MuonPair1, 
+                                const muList_t& arg_MuonPair2 ) const{
+    return (arg_MuonPair1.second[0] == arg_MuonPair2.second[0] || 
+            arg_MuonPair1.second[0] == arg_MuonPair2.second[1] || 
+            arg_MuonPair1.second[1] == arg_MuonPair2.second[0] || 
+            arg_MuonPair1.second[1] == arg_MuonPair2.second[1]   );
+}
+
 // ------------ method called once each job just before starting event loop  ------------
 void MultiLepPAT::beginRun(edm::Run const &iRun, edm::EventSetup const &iSetup)
 {
