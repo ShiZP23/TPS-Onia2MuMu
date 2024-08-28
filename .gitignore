@@ -8,3 +8,4 @@ test/crabData/crab3_*_MINIAOD*
 __pycache__
 *.swp
 *.swo
+*.code-workspace

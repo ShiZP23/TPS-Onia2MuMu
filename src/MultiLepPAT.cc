@@ -23,12 +23,12 @@
  *          Github copilot is used for code and annotation completion.
  *      
  *      20240811 [Eric Wang]
- *          The underlying core of edm::View<T> is actually a std::vector<T>.
- *          This fact may help with writing more efficient code.
- *          It took me some time to realize that I must sort out the muon pairs
- *          before I can proceed with the JPsi and Upsilon reconstruction and 
- *          vertex matching. It would prove too troublesome to cover all 
- *          combinations of muon pairs in the "multi-layer-for-loop" structure.
+ *       - The underlying core of edm::View<T> is actually a std::vector<T>.
+ *         This fact may help with writing more efficient code.
+ *       - It took me some time to realize that I must sort out the muon pairs
+ *         before I can proceed with the JPsi and Upsilon reconstruction and 
+ *         vertex matching. It would prove too troublesome to cover all 
+ *         combinations of muon pairs in the "multi-layer-for-loop" structure.
 ******************************************************************************/
 
 // system include files
@@ -736,7 +736,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 		return;
 	}
 
-    // Intermittent storage for the muon pair [Annotated by Eric Wang, 20240704]
+    // Temporary storage for the muon pair [Annotated by Eric Wang, 20240704]
     std::vector<RefCountedKinematicParticle> transMuonPair;
     std::vector<uint>                        transMuPairId;
     ParticleMass muMass = myMuMass;
@@ -799,7 +799,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                                                            chi2, ndof, muMassSigma) );
             transMuPairId.push_back(iMuon2 - thePATMuonHandle->begin());
             // Judging with vertex fitting.
-            if(!muonPairToVtx(transMuonPair)){
+            if(!particlesToVtx(transMuonPair, "muon pairing")){
                 continue;
             }
             // Passing all the checks, store the muon pair as pairs of RefCountedKinematicParticle.
@@ -824,8 +824,8 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
      *      Jpsi and Upsilon reconstruction and fitting.
      * [Implementation]
      *      - Loop over all existing muon pairs.
-     *      - Apply kinematic and mass window constraints.
-     *      - Fit the vertex to judge.
+     *      - Fit the primary vertex for Jpsi and Upsilon candidates.
+     *      - Store the fitting results into temporary vectors.
      * [Note]
      *      Mass constriant is not applied to any quarkonia candidates.
     **************************************************************************/
@@ -833,23 +833,19 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     RefCountedKinematicTree vtxFitTree_Jpsi_1;
     RefCountedKinematicTree vtxFitTree_Jpsi_2;
     RefCountedKinematicTree vtxFitTree_Ups;
-    RefCountedKinematicTree vtxFitTree_Pri; 
-    KinematicParticleVertexFitter tmpOniaFitter;
+    RefCountedKinematicTree vtxFitTree_Pri;
 
-    // Classes for intermidary particles (Jpsi and Upsilon)
-    RefCountedKinematicParticle Jpsi_1_Fit_noMC, Jpsi_2_Fit_noMC, Ups_Fit_noMC;
-    RefCountedKinematicVertex   Jpsi_1_Vtx_noMC, Jpsi_2_Vtx_noMC, Ups_Vtx_noMC;
+    // Classes for secondary particles (Jpsi and Upsilon)
+    RefCountedKinematicParticle Jpsi_1_Fit_noMC, Jpsi_2_Fit_noMC, Ups_Fit_noMC, Pri_Fit_noMC;
+    RefCountedKinematicVertex   Jpsi_1_Vtx_noMC, Jpsi_2_Vtx_noMC, Ups_Vtx_noMC, Pri_Vtx_noMC;
     KinematicParameters         Jpsi_1_Para,     Jpsi_2_Para,     Ups_Para;
     std::vector< RefCountedKinematicParticle >  interOnia;
 
-    // Markers for fitting
-    bool errorInRefit = false;
-    bool errorPrimary = false;
-    bool isGoodJpsi_1 = false;
-    bool isGoodJpsi_2 = false;
-    bool isGoodUps   = false;
-    bool isGoodPri   = false;
-    double Jpsi_1_massErr, Jpsi_2_massErr, Ups_massErr; // Also used as an indicator for fit result.
+    // Markers for fitting. Only marks if a result is constructed
+    bool isValidJpsi_1, isValidJpsi_2, isValidUps, isValidPri;
+    // Fitted mass error is also stricter marker for fitting.
+    double Jpsi_1_massErr, Jpsi_2_massErr, Ups_massErr, Pri_massErr;
+
 
     for(auto muPair_Jpsi_1  = muPairCand_Jpsi.begin(); 
              muPair_Jpsi_1 != muPairCand_Jpsi.end();  muPair_Jpsi_1++){
@@ -866,56 +862,122 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                     isOverlapPair(*muPair_Jpsi_2, *muPair_Ups)   ){
                     continue;
                 }
-                // Initialize the fitting markers.
-                errorInRefit = false;
-                errorInRefit = false;
-                errorPrimary = false;
-                isGoodJpsi_1 = false;
-                isGoodJpsi_2 = false;
-                isGoodUps   = false;
-                isGoodPri   = false;
+                // Initialize the marker for primary vertex
+                isValidPri = false;
                 // Start constructing the fit tree.
-                // Possible exceptions are mostly caught prior to this point.
-                // Keep one try-catch block for the entire fitting process.
-                try{
-                    vtxFitTree_Jpsi_1 = tmpOniaFitter.fit(muPair_Jpsi_1->first);
-                    vtxFitTree_Jpsi_2 = tmpOniaFitter.fit(muPair_Jpsi_2->first);
-                    vtxFitTree_Ups   = tmpOniaFitter.fit(muPair_Ups->first);
-                } catch(...){
-                    errorInRefit = true;
-                    std::cout << "Error in preparation for final matching" << std::endl;
-                }
-                // Check if the fitting is valid.
-                if( errorInRefit == false &&
-                    vtxFitTree_Jpsi_1->isValid() &&
-                    vtxFitTree_Jpsi_2->isValid() &&
-                    vtxFitTree_Ups->isValid()      ){
-                    // Extract the vertex and the particle parameters
+                // Use particlesToVtx() to fit the quarkonia once more.
+                isValidJpsi_1 = particlesToVtx(vtxFitTree_Jpsi_1, muPair_Jpsi_1->first, "final Jpsi_1");
+                isValidJpsi_2 = particlesToVtx(vtxFitTree_Jpsi_2, muPair_Jpsi_2->first, "final Jpsi_2");
+                isValidUps    = particlesToVtx(vtxFitTree_Ups,    muPair_Ups->first,    "final Ups");
+                // Store the index of the muons.
+                Jpsi_1_mu1_index->push_back(muPair_Jpsi_1->second[0]);
+                Jpsi_1_mu2_index->push_back(muPair_Jpsi_1->second[1]);
+                Jpsi_2_mu1_index->push_back(muPair_Jpsi_2->second[0]);
+                Jpsi_2_mu2_index->push_back(muPair_Jpsi_2->second[1]);
+                Ups_mu1_index->push_back(muPair_Ups->second[0]);
+                Ups_mu2_index->push_back(muPair_Ups->second[1]);
+                // Check if all fit trees give non-null results.
+                if(isValidJpsi_1 && isValidJpsi_2 && isValidUps){
+                    // Extract the vertex and the particle parameters from valid results.
                     // Here, when an invalid fit is detected, the massErr is set to -9.
-                    isGoodJpsi_1 = extractFitInfo(vtxFitTree_Jpsi_1, 
-                                                      Jpsi_1_Fit_noMC, Jpsi_1_Vtx_noMC, Jpsi_1_massErr);
-                    isGoodJpsi_2 = extractFitInfo(vtxFitTree_Jpsi_2,
-                                                      Jpsi_2_Fit_noMC, Jpsi_2_Vtx_noMC, Jpsi_2_massErr);
-                    isGoodUps   = extractFitInfo(vtxFitTree_Ups,
-                                                        Ups_Fit_noMC,   Ups_Vtx_noMC,   Ups_massErr);
-                    if(isGoodJpsi_1 == true && isGoodJpsi_2 == true && isGoodUps == true){
+                    extractFitRes(vtxFitTree_Jpsi_1, Jpsi_1_Fit_noMC, Jpsi_1_Vtx_noMC, Jpsi_1_massErr);
+                    extractFitRes(vtxFitTree_Jpsi_2, Jpsi_2_Fit_noMC, Jpsi_2_Vtx_noMC, Jpsi_2_massErr);
+                    extractFitRes(vtxFitTree_Ups,       Ups_Fit_noMC,    Ups_Vtx_noMC,    Ups_massErr);
+                    // Look for "Good Fit". Judge by the massErr.
+                    if(Jpsi_1_massErr >= 0.0 && Jpsi_2_massErr >= 0.0 && Ups_massErr >= 0.0){
+                        // Initialize the final fitting marker and the secondary particles.
                         errorPrimary = false;
                         interOnia.push_back(Jpsi_1_Fit_noMC);
                         interOnia.push_back(Jpsi_2_Fit_noMC);
                         interOnia.push_back(Ups_Fit_noMC);
-                        // Check if fits to the same vertex.
-                        try{
-                            vtxFitTree_Pri = tmpOniaFitter.fit(interOnia);
-                        }
-                        catch(...){
-                            errorPrimary = true;
-                            std::cout << "Error in primary vertex fitting" << std::endl;
-                        }
-                        isGoodPri = ( errorPrimary == false && vtxFitTree_Pri->isValid() );
+                        // Fit the quarkonia to the same vertex
+                        isValidPri = particlesToVtx(vtxFitTree_Pri, interOnia, "primary vertex");
                     }
                 }
-                if(isGoodPri){
-
+                // Work with all fit results above. (Jpsi_1, Jpsi_2, Ups, Pri)
+                // Primary vertex fitting comes first.
+                if(isValidPri){
+                    // Extract the vertex and the particle parameters from valid results.
+                    extractFitRes(vtxFitTree_Pri, Pri_Fit_noMC, Pri_Vtx_noMC, Pri_massErr);
+                    // Store the fitting results into temporary vectors.
+                    Vtx_Chi2->push_back(Pri_Vtx_noMC->chiSquared());
+                    Vtx_Ndof->push_back(Pri_Vtx_noMC->degreesOfFreedom());
+                    Vtx_Prob->push_back(ChiSquaredProbability((double)(Pri_Vtx_noMC->chiSquared()), 
+                                                              (double)(Pri_Vtx_noMC->degreesOfFreedom())));
+                    // What other info do we need in further analysis? [Question from Eric Wang, 20240828]
+                }
+                else{
+                    // Store "error code" -999 for the primary vertex fitting.
+                    Vtx_Chi2->push_back(-999);
+                    Vtx_Ndof->push_back(-999);
+                    Vtx_Prob->push_back(-999);
+                }
+                // Then comes the secondary particles (quarkonia).
+                if(isValidJpsi_1){
+                    Jpsi_1_mass->push_back(Jpsi_1_Fit_noMC->currentState().mass());
+                    Jpsi_1_massErr->push_back(Jpsi_1_massErr);
+                    Jpsi_1_Chi2->push_back(double(Jpsi_1_Vtx_noMC->chiSquared()));
+                    Jpsi_1_ndof->push_back(double(Jpsi_1_Vtx_noMC->degreesOfFreedom()));
+                    Jpsi_1_VtxProb->push_back(ChiSquaredProbability((double)(Jpsi_1_Vtx_noMC->chiSquared()), 
+                                                                    (double)(Jpsi_1_Vtx_noMC->degreesOfFreedom())));
+                    Jpsi_1_px->push_back(Jpsi_1_Fit_noMC->currentState().kinematicParameters().momentum().x());
+                    Jpsi_1_py->push_back(Jpsi_1_Fit_noMC->currentState().kinematicParameters().momentum().y());
+                    Jpsi_1_pz->push_back(Jpsi_1_Fit_noMC->currentState().kinematicParameters().momentum().z());
+                }
+                else{
+                    // Store "error code" -9 for the secondary particles (quarkonia).
+                    Jpsi_1_mass->push_back(-9);
+                    Jpsi_1_massErr->push_back(-9);
+                    Jpsi_1_VtxProb->push_back(-9);
+                    Jpsi_1_Chi2->push_back(-9);
+                    Jpsi_1_ndof->push_back(-9);
+                    Jpsi_1_px->push_back(-9);
+                    Jpsi_1_py->push_back(-9);
+                    Jpsi_1_pz->push_back(-9);
+                }
+                if(isValidJpsi_2){
+                    Jpsi_2_mass->push_back(Jpsi_2_Fit_noMC->currentState().mass());
+                    Jpsi_2_massErr->push_back(Jpsi_2_massErr);
+                    Jpsi_2_Chi2->push_back(double(Jpsi_2_Vtx_noMC->chiSquared()));
+                    Jpsi_2_ndof->push_back(double(Jpsi_2_Vtx_noMC->degreesOfFreedom()));
+                    Jpsi_2_VtxProb->push_back(ChiSquaredProbability((double)(Jpsi_2_Vtx_noMC->chiSquared()), 
+                                                                    (double)(Jpsi_2_Vtx_noMC->degreesOfFreedom())));
+                    Jpsi_2_px->push_back(Jpsi_2_Fit_noMC->currentState().kinematicParameters().momentum().x());
+                    Jpsi_2_py->push_back(Jpsi_2_Fit_noMC->currentState().kinematicParameters().momentum().y());
+                    Jpsi_2_pz->push_back(Jpsi_2_Fit_noMC->currentState().kinematicParameters().momentum().z());
+                }
+                else{
+                    // Store "error code" -9 for the secondary particles (quarkonia).
+                    Jpsi_2_mass->push_back(-9);
+                    Jpsi_2_massErr->push_back(-9);
+                    Jpsi_2_VtxProb->push_back(-9);
+                    Jpsi_2_Chi2->push_back(-9);
+                    Jpsi_2_ndof->push_back(-9);
+                    Jpsi_2_px->push_back(-9);
+                    Jpsi_2_py->push_back(-9);
+                    Jpsi_2_pz->push_back(-9);
+                }
+                if(isValidUps){
+                    Ups_mass->push_back(Ups_Fit_noMC->currentState().mass());
+                    Ups_massErr->push_back(Ups_massErr);
+                    Ups_Chi2->push_back(double(Ups_Vtx_noMC->chiSquared()));
+                    Ups_ndof->push_back(double(Ups_Vtx_noMC->degreesOfFreedom()));
+                    Ups_VtxProb->push_back(ChiSquaredProbability((double)(Ups_Vtx_noMC->chiSquared()), 
+                                                                 (double)(Ups_Vtx_noMC->degreesOfFreedom())));
+                    Ups_px->push_back(Ups_Fit_noMC->currentState().kinematicParameters().momentum().x());
+                    Ups_py->push_back(Ups_Fit_noMC->currentState().kinematicParameters().momentum().y());
+                    Ups_pz->push_back(Ups_Fit_noMC->currentState().kinematicParameters().momentum().z());
+                }
+                else{
+                    // Store "error code" -9 for the secondary particles (quarkonia).
+                    Ups_mass->push_back(-9);
+                    Ups_massErr->push_back(-9);
+                    Ups_VtxProb->push_back(-9);
+                    Ups_Chi2->push_back(-9);
+                    Ups_ndof->push_back(-9);
+                    Ups_px->push_back(-9);
+                    Ups_py->push_back(-9);
+                    Ups_pz->push_back(-9);
                 }
             }
         }
@@ -2107,39 +2169,157 @@ void MultiLepPAT::tracksToMuonPair(vector<RefCountedKinematicParticle>&        a
 
 /******************************************************************************
  * [Name of function]  
- *      muonPairToVtx
+ *      particlesToVtx
  * [Description]  
  *      Construct muons from tracks.
  *      Assuming muon mass and mass error as PDG 2023 values.
- *      Adds reconstructed muons to the arg_MuonResults.
+ *      Adds reconstructed muons to the arg_Muons.
  * [Parameters]
- *      vector<RefCountedKinematicParticle>&        arg_MuonResults
+ *      vector<RefCountedKinematicParticle>&        arg_Muons
  *          - The vector to which reconstructed muons are added.
- *      KinematicParticleFactoryFromTransientTrack& arg_MuFactory
- *          - The class used to reconstruct muons.
- *      const MagneticField&                        arg_bField,
- *          - Magnetic field used in reconstruction.
- *      const TrackRef&                             arg_Trk1, arg_Trk2  
- *          - Tracks identified as muons.      
+ *      const string&                               arg_Message  
+ *          - The message to be displayed in case of error.
  * [Return value]
  *      (void)
  * [Note]
- *          
+ *      This definition uses an "implicit" VertexFitter and KinematicTree. 
 ******************************************************************************/
 
-virtual bool muonPairToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults){
+bool MultiLepPAT::particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_Muons,
+                                 const string&                               arg_Message) const{
     KinematicParticleVertexFitter fitter;
     RefCountedKinematicTree vertexFitTree;
     bool fitError = false;
     try{
-        vertexFitTree = fitter.fit(arg_MuonResults);
+        vertexFitTree = fitter.fit(arg_Muons);
     }catch(...){
         fitError = true;
-        std::cout << "error at muonPairToVtx" << std::endl;
+        std::cout << "[Fit Error] " << arg_Message <<  std::endl;
     }
     if (fitError || !vertexFitTree->isValid()){
         return false;
     }
+    return true;
+}
+
+/******************************************************************************
+ * [Name of function]  
+ *      particlesToVtx
+ * [Description]  
+ *      Construct muons from tracks.
+ *      Assuming muon mass and mass error as PDG 2023 values.
+ *      Adds reconstructed muons to the arg_Muons.
+ * [Parameters]
+ *      vector<RefCountedKinematicParticle>&        arg_Muons
+ *          - The vector to which reconstructed muons are added.
+ *      const string&                               arg_Message  
+ *          - The message to be displayed in case of error.
+ *      RefCountedKinematicTree&                    arg_VertexFitTree
+ *          - The KinematicTree to which the vertex fit is added.    
+ * [Return value]
+ *      (void)
+ * [Note]
+ *      This definition uses an "explicit" KinematicTree.
+ *      The KinematicTree is passed as an argument and is modified after call.
+******************************************************************************/
+
+bool MultiLepPAT::particlesToVtx(RefCountedKinematicTree&                    arg_VertexFitTree
+                                 const vector<RefCountedKinematicParticle>&  arg_Muons,
+                                 const string&                               arg_Message) const{
+    KinematicParticleVertexFitter fitter;
+    bool fitError = false;
+    try{
+        arg_VertexFitTree = fitter.fit(arg_Muons);
+    }catch(...){
+        fitError = true;
+        std::cout << "[Fit Error] " << arg_Message <<  std::endl;
+    }
+    if (fitError || !arg_VertexFitTree->isValid()){
+        return false;
+    }
+    return true;
+}
+
+/******************************************************************************
+ * [Name of function]  
+ *      extractFitRes
+ * [Description]
+ *      Extract kinematic parameters and other results from a KinematicTree.
+ *      Calls movePointerToTheTop() .
+ * [Parameters]
+ *      RefCountedKinematicTree&     arg_VtxTree
+ *          - The KinematicTree constructed from fitting.
+ *      RefCountedKinematicParticle& res_Part
+ *          - The mother particle extracted from arg_VtxTree.
+ *      RefCountedKinematicVertex&   res_Vtx
+ *          - The primary vertex extracted from arg_VtxTree.
+ *      KinematicParameters&         res_Param
+ *          - The kinematic parameters of the mother particle.
+ *      double&                      res_MassErr
+ *          - The mass error of the mother particle.
+ * [Return value]
+ *      (bool)
+ *          - True if the mass error squared is non-negative.
+ * [Note]
+ *      - Used when the resulting dynamics is important.
+ *      - Requires the KinematicTree to be valid.
+ *      - Requires "explicit" particle and vertex.
+ *      - The mass error is set to -9 if the mass error squared is negative.
+******************************************************************************/
+
+bool MultiLepPAT::extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
+                                RefCountedKinematicParticle& res_Part,
+                                RefCountedKinematicVertex&   res_Vtx,
+                                KinematicParameters&         res_Param,
+                                double&                      res_MassErr) const{
+    double tmp_massErr2 = 0.0;
+    arg_VtxTree->movePointerToTheTop();
+    // Extract particle and vertex.
+    res_Part  = arg_VtxTree->currentParticle();
+    res_Vtx   = arg_VtxTree->currentDecayVertex();
+    // Obtain mass error squared and other parameters for the vertex.
+    res_Param    = res_Part->currentState().kinematicParameters();
+    tmp_MassErr2 = res_Part->currentState().kinematicParametersError().matrix()(6, 6);
+    // Judge if the fit have been a good fit.
+    if(tmp_MassErr2 < 0.0){
+        res_MassErr = -9;
+    }
+    else{
+        res_MassErr = std::sqrt(tmp_MassErr2);
+    }
+    return (res_MassErr >= 0.0);
+}
+
+/******************************************************************************
+ * [Name of function]  
+ *      extractFitRes
+ * [Description]
+ *      Extract kinematic parameters and other results from a KinematicTree.
+ *      Calls movePointerToTheTop() .
+ * [Parameters]
+ *      RefCountedKinematicTree&     arg_VtxTree
+ *          - The KinematicTree constructed from fitting.
+ *      RefCountedKinematicVertex&   res_Vtx
+ *          - The primary vertex extracted from arg_VtxTree.
+ *      double&                      res_VtxProb
+ *          - The vertex probability deduced from res_Vtx parameters.
+ * [Return value]
+ *      (bool, always true)
+ * [Note]
+ *      - Used when only the vertex probability is important.
+ *      - Requires the KinematicTree to be valid.
+ *      - Requires "explicit" vertex.
+******************************************************************************/
+
+bool MultiLepPAT::extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
+                                RefCountedKinematicVertex&   res_Vtx,
+                                double&                      res_VtxProb) const{
+    arg_VtxTree->movePointerToTheTop();
+    // Extract particle and vertex.
+    res_Vtx   = arg_VtxTree->currentDecayVertex();
+    // Obtain mass error squared and other parameters for the vertex.
+    res_VtxProb = ChiSquaredProbability((double)(res_Vtx->chiSquared()), 
+                                        (double)(res_Vtx->degreesOfFreedom()));
     return true;
 }
 

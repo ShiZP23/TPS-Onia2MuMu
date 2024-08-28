@@ -178,12 +178,17 @@ private:
                                   const MagneticField&                        arg_bField,
                                   const TrackRef arg_Trk1,     const TrackRef arg_Trk2       ) const;
 
-    virtual bool muonPairToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults) const;
+    virtual bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults,
+                                const string&                               arg_Message) const;
+    virtual bool particlesToVtx(RefCountedKinematicTree&                    arg_VertexFitTree
+                                const vector<RefCountedKinematicParticle>&  arg_Muons,
+                                const string&                               arg_Message) const;
     
-    virtual bool getVtxPara(const RefCountedKinematicTree&     arg_VtxTree,
-                                  RefCountedKinematicParticle& res_Part,
-                                  RefCountedKinematicVertex&   res_Vtx,
-                                  double&                      res_massErr) const;
+    virtual bool extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
+                               RefCountedKinematicParticle& res_Part,
+                               RefCountedKinematicVertex&   res_Vtx,
+                               KinematicParameters&         res_Param,
+                               double&                      res_massErr) const;
 
     // To avoid overlapping muon pairs
     using muon_t   = RefCountedKinematicParticle;
@@ -327,7 +332,7 @@ private:
                      *Ups_ndof,    *Ups_px,         *Ups_py,         *Ups_pz     ;
 
     // Vertex fitting [Modified by Eric Wang, 20240626]
-    vector<float> *VtxProb,    *Chi2,          *ndof,          *VtxPt2;
+    vector<float> *Vtx_Prob, *Vtx_Chi2, *Vtx_Ndof, *Vtx_Pt2;
 
     // MC results [Modified by Eric Wang, 20240626]
     // Kinematics
