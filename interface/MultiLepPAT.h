@@ -139,17 +139,21 @@ private:
     virtual void endJob() ;
 
     // Essential methods (ctau)
-    virtual double GetcTau( RefCountedKinematicVertex&   decayVrtx, 
-                            RefCountedKinematicParticle& kinePart, 
-                            Vertex&                             bs );
-    virtual double GetcTauErr( RefCountedKinematicVertex& decayVrtx, 
-                               RefCountedKinematicParticle& kinePart, 
-                               Vertex& bs                              );
+    virtual static double GetcTau(RefCountedKinematicVertex&   decayVrtx, 
+                                  RefCountedKinematicParticle& kinePart, 
+                                  Vertex&                      bs );
+    virtual static double GetcTauErr(RefCountedKinematicVertex& decayVrtx, 
+                                     RefCountedKinematicParticle& kinePart, 
+                                     Vertex&                      bs );
     
     // Essential methods (deltaR)
-    double deltaR(double eta1, double phi1, double eta2, double phi2);
+    static double deltaR(double eta1, double phi1, double eta2, double phi2);
     
-
+    // Essential methods (pT, eta, phi all in one)
+    virtual static void getDynamics(RefCountedKinematicParticle& arg_Part,
+                                    double& res_pt,   double& res_eta, double& res_phi);
+    virtual static void getDynamics(double  arg_mass, double  arg_px,  double  arg_py, double arg_pz,
+                                    double& res_pt,   double& res_eta, double& res_phi);
 
 
  
@@ -176,28 +180,32 @@ private:
     virtual static void tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
                                          KinematicParticleFactoryFromTransientTrack& arg_MuFactory,
                                          const MagneticField&                        arg_bField,
-                                         const TrackRef arg_Trk1,     const TrackRef arg_Trk2       ) const;
+                                         const TrackRef arg_Trk1,     const TrackRef arg_Trk2       );
 
-    virtual static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults) const;
+    virtual static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults);
     virtual static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults,
-                                       const string&                               arg_Message) const;
+                                       const string&                               arg_Message);
     virtual static bool particlesToVtx(RefCountedKinematicTree&                    arg_VertexFitTree
                                        const vector<RefCountedKinematicParticle>&  arg_Muons,
-                                       const string&                               arg_Message) const;
+                                       const string&                               arg_Message);
     
     virtual static bool extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
                                       RefCountedKinematicParticle& res_Part,
                                       RefCountedKinematicVertex&   res_Vtx,
                                       KinematicParameters&         res_Param,
-                                      double&                      res_massErr) const;
+                                      double&                      res_massErr);
 
     // To avoid overlapping muon pairs
     using muon_t   = RefCountedKinematicParticle;
     using muList_t = std::pair< vector<muon_t>, vector<uint> >;
     virtual static bool isOverlapPair(const muList_t& arg_MuonPair1, 
-                               const muList_t& arg_MuonPair2 ) const;
+                                      const muList_t& arg_MuonPair2 );
+
     // Deal with "multi-candidate" issue
-    virtual static double 
+    virtual static double fitResEval(double arg_massDiff_Jpsi_1, double arg_massErr_Jpsi_1,
+                                     double arg_massDiff_Jpsi_2, double arg_massErr_Jpsi_2,
+                                     double arg_massDiff_Ups,    double arg_massErr_Ups   );
+                        
     
     // Member data
 
