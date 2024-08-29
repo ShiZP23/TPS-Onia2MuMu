@@ -334,40 +334,107 @@ private:
                   *Jpsi_2_mu_1_Idx, *Jpsi_2_mu_2_Idx,
                      *Ups_mu_1_Idx,    *Ups_mu_2_Idx;
 
-    // Reconstruced Jpsi and Upsilon.
-    vector<float> *Jpsi_1_mass, *Jpsi_1_massErr, *Jpsi_1_VtxProb, *Jpsi_1_Chi2,
-                  *Jpsi_1_ndof, *Jpsi_1_px,      *Jpsi_1_py,      *Jpsi_1_pz   ;
-    vector<float> *Jpsi_2_mass, *Jpsi_2_massErr, *Jpsi_2_VtxProb, *Jpsi_2_Chi2,
-                  *Jpsi_2_ndof, *Jpsi_2_px,      *Jpsi_2_py,      *Jpsi_2_pz   ;
-    vector<float>    *Ups_mass,    *Ups_massErr,    *Ups_VtxProb,    *Ups_Chi2,
-                     *Ups_ndof,    *Ups_px,         *Ups_py,         *Ups_pz     ;
+    // Reconstructed Jpsi and Upsilon.
+    // Note: Used "vector<T>* a, b" instead of "vector<T> *a, *b"
+    vector<float> *Jpsi_1_mass, *Jpsi_1_massErr, *Jpsi_1_massDiff,
+                  *Jpsi_2_mass, *Jpsi_2_massErr, *Jpsi_2_massDiff,
+                     *Ups_mass,    *Ups_massErr,    *Ups_massDiff ;
+               
+    vector<float> *Jpsi_1_ctau, *Jpsi_1_ctauErr, *Jpsi_1_Chi2, *Jpsi_1_ndof, *Jpsi_1_VtxProb,
+                  *Jpsi_2_ctau, *Jpsi_2_ctauErr, *Jpsi_2_Chi2, *Jpsi_2_ndof, *Jpsi_2_VtxProb,
+                     *Ups_ctau,    *Ups_ctauErr,    *Ups_Chi2,    *Ups_ndof,    *Ups_VtxProb;
+                  
+    vector<float> *Jpsi_1_phi, *Jpsi_1_eta, *Jpsi_1_pt,
+                  *Jpsi_2_phi, *Jpsi_2_eta, *Jpsi_2_pt,
+                     *Ups_phi,    *Ups_eta,    *Ups_pt;
+               
+    vector<float> *Jpsi_1_px, *Jpsi_1_py, *Jpsi_1_pz,
+                  *Jpsi_2_px, *Jpsi_2_py, *Jpsi_2_pz,
+                     *Ups_px,    *Ups_py,    *Ups_pz;
+    // Primary vertex reconstructied from Jpsi and Upsilon.              
+    vector<float>    *Pri_mass,  *Pri_massErr,
+                     *Pri_ctau,  *Pri_ctauErr, *Pri_Chi2, *Pri_ndof, *Pri_VtxProb,
+                     *Pri_px,    *Pri_py,    Pri_pz, 
+                     *Pri_phi,   *Pri_eta,   Pri_pt;
 
-    // Vertex fitting [Modified by Eric Wang, 20240626]
-    vector<float> *Vtx_Prob, *Vtx_Chi2, *Vtx_Ndof, *Vtx_Pt2;
+    //doMC
+    vector<float> 
+    *MC_X_px,
+    *MC_X_py,
+    *MC_X_pz,
+    *MC_X_mass,
+    *MC_Dau_Jpsipx,
+    *MC_Dau_Jpsipy,
+    *MC_Dau_Jpsipz,
+    *MC_Dau_Jpsimass,
+    *MC_Dau_psi2spx,
+    *MC_Dau_psi2spy,
+    *MC_Dau_psi2spz,
+    *MC_Dau_psi2smass,
+    *MC_Granddau_mu1px,
+    *MC_Granddau_mu1py,
+    *MC_Granddau_mu1pz,
+    *MC_Granddau_mu2px,
+    *MC_Granddau_mu2py,
+    *MC_Granddau_mu2pz,
+    *MC_Granddau_Jpsipx,
+    *MC_Granddau_Jpsipy,
+    *MC_Granddau_Jpsipz,
+    *MC_Granddau_Jpsimass,
+    *MC_Granddau_pi1px,
+    *MC_Granddau_pi1py,
+    *MC_Granddau_pi1pz,
+    *MC_Granddau_pi2px,
+    *MC_Granddau_pi2py,
+    *MC_Granddau_pi2pz,
+    *MC_Grandgranddau_mu3px,
+    *MC_Grandgranddau_mu3py,
+    *MC_Grandgranddau_mu3pz,
+    *MC_Grandgranddau_mu4px,
+    *MC_Grandgranddau_mu4py,
+    *MC_Grandgranddau_mu4pz;
+    
+    vector<int>
+    *MC_X_chg,
+    *MC_Dau_JpsipdgId,
+    *MC_Dau_psi2spdgId,
+    *MC_Granddau_mu1pdgId,
+    *MC_Granddau_mu2pdgId,
+    *MC_Granddau_JpsipdgId,
+    *MC_Granddau_pi1pdgId,
+    *MC_Granddau_pi2pdgId,
+    *MC_Grandgranddau_mu3pdgId,
+    *MC_Grandgranddau_mu4pdgId;
+    
+    vector<float> 
+    *Match_mu1px,
+    *Match_mu1py,
+    *Match_mu1pz,
+    *Match_mu2px,
+    *Match_mu2py,
+    *Match_mu2pz,
+    *Match_mu3px,
+    *Match_mu3py,
+    *Match_mu3pz,
+    *Match_mu4px,
+    *Match_mu4py,
+    *Match_mu4pz,
+    
+    *Match_pi1px,
+    *Match_pi1py,
+    *Match_pi1pz,
+    *Match_pi2px,
+    *Match_pi2py,
+    *Match_pi2pz; 
 
-    // MC results [Modified by Eric Wang, 20240626]
-    // Kinematics
     vector<float> 
-        *MC_G1_Jpsi_1_px, *MC_G1_Jpsi_1_py, *MC_G1_Jpsi_1_pz, *MC_G1_Jpsi_1_mass,
-        *MC_G1_Jpsi_2_px, *MC_G1_Jpsi_2_py, *MC_G1_Jpsi_2_pz, *MC_G1_Jpsi_2_mass,
-        *MC_G1_Ups_px,    *MC_G1_Ups_py,    *MC_G1_Ups_pz,    *MC_G1_Ups_mass;
+        *Match_Jpsi_1_mu1px, *Match_Jpsi_1_mu1py, *Match_Jpsi1_mu1pz,
+        *Match_Jpsi_1_mu2px, *Match_Jpsi_1_mu2py, *Match_Jpsi1_mu2pz,
+        *Match_Jpsi_2_mu1px, *Match_Jpsi_2_mu1py, *Match_Jpsi2_mu1pz,
+        *Match_Jpsi_2_mu2px, *Match_Jpsi_2_mu2py, *Match_Jpsi2_mu2pz,
+        *Match_Ups_mu1px,    *Match_Ups_mu1py,    *Match_Ups_mu1pz,
+        *Match_Ups_mu2px,    *Match_Ups_mu2py,    *Match_Ups_mu2pz;
 
-    // For Muon pairs, always keep the order of mu1 = mu+ and mu2 = mu-; 
-    vector<float> 
-        *MC_G2_Mu1_px, *MC_G2_Mu1_py, *MC_G2_Mu1_pz, *MC_G2_Mu1_mass,
-        *MC_G2_Mu2_px, *MC_G2_Mu2_py, *MC_G2_Mu2_pz, *MC_G2_Mu2_mass ; 
-
-    // Particle ID
-
-    vector<float> 
-        *MC_G1_Jpsi_PDG_ID,
-        *MC_G1_Ups_PDG_ID;
-    vector<float> 
-        *MC_G2_Mu1_PDG_ID, 
-        *MC_G2_Mu2_PDG_ID ; 
-    vector<float> 
-        *Match_mu1px, *Match_mu1py, *Match_mu1pz,
-        *Match_mu2px, *Match_mu2py, *Match_mu2pz ; 
 
   
 };

@@ -188,6 +188,26 @@ MultiLepPAT::MultiLepPAT(const edm::ParameterSet &iConfig)
 	  mupulldXdZ_pos_ArbST(0), mupulldYdZ_pos_ArbST(0),
 	  mupulldXdZ_pos_noArb_any(0), mupulldYdZ_pos_noArb_any(0),
 	  
+      Jpsi_1_mass(0), Jpsi_1_massErr(0), Jpsi_1_massDiff(0),
+      Jpsi_2_mass(0), Jpsi_2_massErr(0), Jpsi_2_massDiff(0),
+         Ups_mass(0),    Ups_massErr(0),    Ups_massDiff(0),
+
+      Jpsi_1_ctau(0), Jpsi_1_ctauErr(0), Jpsi_1_Chi2(0), Jpsi_1_ndof(0), Jpsi_1_VtxProb(0),
+      Jpsi_2_ctau(0), Jpsi_2_ctauErr(0), Jpsi_2_Chi2(0), Jpsi_2_ndof(0), Jpsi_2_VtxProb(0),
+         Ups_ctau(0),    Ups_ctauErr(0),    Ups_Chi2(0),    Ups_ndof(0),    Ups_VtxProb(0),
+      
+      Jpsi_1_phi(0), Jpsi_1_eta(0), Jpsi_1_pt(0),
+      Jpsi_2_phi(0), Jpsi_2_eta(0), Jpsi_2_pt(0),
+         Ups_phi(0),    Ups_eta(0),    Ups_pt(0),
+
+      Jpsi_1_px(0), Jpsi_1_py(0), Jpsi_1_pz(0),
+      Jpsi_2_px(0), Jpsi_2_py(0), Jpsi_2_pz(0),
+         Ups_px(0),    Ups_py(0),    Ups_pz(0),
+      
+         Pri_mass(0),  Pri_massErr(0),
+         Pri_ctau(0),  Pri_ctauErr(0), Pri_Chi2(0), Pri_ndof(0), Pri_VtxProb(0),
+         Pri_px(0),    Pri_py(0),    Pri_pz(0), 
+         Pri_phi(0),   Pri_eta(0),   Pri_pt(0),
       
 	  // doMC
 	  MC_X_py(0),
@@ -235,25 +255,26 @@ MultiLepPAT::MultiLepPAT(const edm::ParameterSet &iConfig)
 	  MC_Grandgranddau_mu3pdgId(0),
 	  MC_Grandgranddau_mu4pdgId(0),
 
-	  Match_mu1px(0),
-	  Match_mu1py(0),
-	  Match_mu1pz(0),
-	  Match_mu2px(0),
-	  Match_mu2py(0),
-	  Match_mu2pz(0),
-	  Match_mu3px(0),
-	  Match_mu3py(0),
-	  Match_mu3pz(0),
-	  Match_mu4px(0),
-	  Match_mu4py(0),
-	  Match_mu4pz(0),
+	  Match_Jpsi_1_mu2_px(0),
+      Match_Jpsi_1_mu2_py(0),
+      Match_Jpsi_1_mu2_pz(0),
+      Match_Jpsi_1_mu1_px(0),
+      Match_Jpsi_1_mu1_py(0),
+      Match_Jpsi_1_mu1_pz(0),
+      Match_Jpsi_2_mu1_px(0),
+      Match_Jpsi_2_mu1_py(0),
+      Match_Jpsi_2_mu1_pz(0),
+      Match_Jpsi_2_mu2_px(0),
+      Match_Jpsi_2_mu2_py(0),
+      Match_Jpsi_2_mu2_pz(0),
+      Match_Ups_mu1_px(0),
+      Match_Ups_mu1_py(0),
+      Match_Ups_mu1_pz(0),
+      Match_Ups_mu2_px(0),
+      Match_Ups_mu2_py(0),
+      Match_Ups_mu2_pz(0)
 
-	  Match_pi1px(0),
-	  Match_pi1py(0),
-	  Match_pi1pz(0),
-	  Match_pi2px(0),
-	  Match_pi2py(0),
-	  Match_pi2pz(0)
+      
 
 	  // mybxlumicorr(0), myrawbxlumi(0)
 {
@@ -1208,108 +1229,65 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 	muUpsVrtxMatch->clear();
 	muL3TriggerMatch->clear();
 
-	X_mu1Idx->clear();
-	X_mu2Idx->clear();
-	X_mu3Idx->clear();
-	X_mu4Idx->clear();
-	X_mass->clear();
-	X_VtxProb->clear();
-	X_Chi2->clear();
-	X_ndof->clear();
-	X_px->clear();
-	X_py->clear();
-	X_pz->clear();
-	X_massErr->clear();
-	X_JPiPi_mass->clear();
-	X_JPiPi_VtxProb->clear();
-	X_JPiPi_Chi2->clear();
-	X_JPiPi_ndof->clear();
-	X_JPiPi_px->clear();
-	X_JPiPi_py->clear();
-	X_JPiPi_pz->clear();
-	X_JPiPi_massErr->clear();
-	X_Jpsi_1_mass->clear();
-	X_Jpsi_1_VtxProb->clear();
-	X_Jpsi_1_Chi2->clear();
-	X_Jpsi_1_ndof->clear();
-	X_Jpsi_1_px->clear();
-	X_Jpsi_1_py->clear();
-	X_Jpsi_1_pz->clear();
-	X_Jpsi_1_massErr->clear();
-	X_Jpsi_2_mass->clear();
-	X_Jpsi_2_VtxProb->clear();
-	X_Jpsi_2_Chi2->clear();
-	X_Jpsi_2_ndof->clear();
-	X_Jpsi_2_px->clear();
-	X_Jpsi_2_py->clear();
-	X_Jpsi_2_pz->clear();
-	X_Jpsi_2_massErr->clear();
-	X_JPiPi_Pi1Idx->clear();
-	X_JPiPi_Pi2Idx->clear();
-	X_JPiPi_Pi1px->clear();
-	X_JPiPi_Pi1py->clear();
-	X_JPiPi_Pi1pz->clear();
-	X_JPiPi_Pi2px->clear();
-	X_JPiPi_Pi2py->clear();
-	X_JPiPi_Pi2pz->clear();
+    Pri_mass->clear();
+    Pri_massErr->clear();
+    Pri_massDiff->clear();
+    Pri_ctau->clear();
+    Pri_ctauErr->clear();
+    Pri_Chi2->clear();
+    Pri_ndof->clear();
+    Pri_VtxProb->clear();
+    Pri_px->clear();
+    Pri_py->clear();
+    Pri_pz->clear();
+    Pri_phi->clear();
+    Pri_eta->clear();
+    Pri_pt->clear();
 
-	// mass constrain variables
- 	cs_X_Jpsi_1_mass->clear();
-	cs_X_Jpsi_1_VtxProb->clear();
-	cs_X_Jpsi_1_Chi2->clear();
-	cs_X_Jpsi_1_ndof->clear();
-	cs_X_Jpsi_1_px->clear();
-	cs_X_Jpsi_1_py->clear();
-	cs_X_Jpsi_1_pz->clear();
-	cs_X_Jpsi_1_massErr->clear();
- 	cs_X_Jpsi_2_mass->clear();
-	cs_X_Jpsi_2_VtxProb->clear();
-	cs_X_Jpsi_2_Chi2->clear();
-	cs_X_Jpsi_2_ndof->clear();
-	cs_X_Jpsi_2_px->clear();
-	cs_X_Jpsi_2_py->clear();
-	cs_X_Jpsi_2_pz->clear();
-	cs_X_Jpsi_2_massErr->clear();
- 	cs_X_JPiPi_mass->clear();
-	cs_X_JPiPi_VtxProb->clear();
-	cs_X_JPiPi_Chi2->clear();
-	cs_X_JPiPi_ndof->clear();
-	cs_X_JPiPi_px ->clear();
-	cs_X_JPiPi_py->clear();
-	cs_X_JPiPi_pz->clear();
-	cs_X_JPiPi_massErr->clear();
- 	cs_X_mass_Psi2S->clear();
-	cs_X_VtxProb_Psi2S->clear();
-	cs_X_Chi2_Psi2S->clear();
-	cs_X_ndof_Psi2S->clear();
-	cs_X_px_Psi2S->clear();
-	cs_X_py_Psi2S->clear();
-	cs_X_pz_Psi2S->clear();
-	cs_X_massErr_Psi2S->clear();
- 	cs_X_JPiPi_mass_Psi2S->clear();
-	cs_X_JPiPi_VtxProb_Psi2S->clear();
-	cs_X_JPiPi_Chi2_Psi2S->clear();
-	cs_X_JPiPi_ndof_Psi2S->clear();
-	cs_X_JPiPi_px_Psi2S->clear();
-	cs_X_JPiPi_py_Psi2S->clear();
-	cs_X_JPiPi_pz_Psi2S->clear();
-	cs_X_JPiPi_massErr_Psi2S->clear();
- 	cs_X_mass_X3872->clear();
-	cs_X_VtxProb_X3872->clear();
-	cs_X_Chi2_X3872->clear();
-	cs_X_ndof_X3872->clear();
-	cs_X_px_X3872->clear();
-	cs_X_py_X3872->clear();
-	cs_X_pz_X3872->clear();
-	cs_X_massErr_X3872->clear();
- 	cs_X_JPiPi_mass_X3872->clear();
-	cs_X_JPiPi_VtxProb_X3872->clear();
-	cs_X_JPiPi_Chi2_X3872->clear();
-	cs_X_JPiPi_ndof_X3872->clear();
-	cs_X_JPiPi_px_X3872->clear();
-	cs_X_JPiPi_py_X3872->clear();
-	cs_X_JPiPi_pz_X3872->clear();
-	cs_X_JPiPi_massErr_X3872->clear();
+    Jpsi_1_mass->clear();
+    Jpsi_1_massErr->clear();
+    Jpsi_1_massDiff->clear();
+    Jpsi_1_ctau->clear();
+    Jpsi_1_ctauErr->clear();
+    Jpsi_1_Chi2->clear();
+    Jpsi_1_ndof->clear();
+    Jpsi_1_VtxProb->clear();
+    Jpsi_1_px->clear();
+    Jpsi_1_py->clear();
+    Jpsi_1_pz->clear();
+    Jpsi_1_phi->clear();
+    Jpsi_1_eta->clear();
+    Jpsi_1_pt->clear();
+
+    Jpsi_2_mass->clear();
+    Jpsi_2_massErr->clear();
+    Jpsi_2_massDiff->clear();
+    Jpsi_2_ctau->clear();
+    Jpsi_2_ctauErr->clear();
+    Jpsi_2_Chi2->clear();
+    Jpsi_2_ndof->clear();
+    Jpsi_2_VtxProb->clear();
+    Jpsi_2_px->clear();
+    Jpsi_2_py->clear();
+    Jpsi_2_pz->clear();
+    Jpsi_2_phi->clear();
+    Jpsi_2_eta->clear();
+    Jpsi_2_pt->clear();
+
+    Ups_mass->clear();
+    Ups_massErr->clear();
+    Ups_massDiff->clear();
+    Ups_ctau->clear();
+    Ups_ctauErr->clear();
+    Ups_Chi2->clear();
+    Ups_ndof->clear();
+    Ups_VtxProb->clear();
+    Ups_px->clear();
+    Ups_py->clear();
+    Ups_pz->clear();
+    Ups_phi->clear();
+    Ups_eta->clear();
+    Ups_pt->clear();
 } // analyze
 // 
 
@@ -1748,108 +1726,67 @@ void MultiLepPAT::beginJob()
 	X_One_Tree_->Branch("muUpsVrtxMatch", &muUpsVrtxMatch);
 	X_One_Tree_->Branch("muL3TriggerMatch", &muL3TriggerMatch);
 
-	X_One_Tree_->Branch("X_mu1Idx", &X_mu1Idx);
-	X_One_Tree_->Branch("X_mu2Idx", &X_mu2Idx);
-	X_One_Tree_->Branch("X_mu3Idx", &X_mu3Idx);
-	X_One_Tree_->Branch("X_mu4Idx", &X_mu4Idx);
-	X_One_Tree_->Branch("X_mass", &X_mass);
-	X_One_Tree_->Branch("X_VtxProb", &X_VtxProb);
-	X_One_Tree_->Branch("X_Chi2", &X_Chi2);
-	X_One_Tree_->Branch("X_ndof", &X_ndof);
-	X_One_Tree_->Branch("X_px", &X_px);
-	X_One_Tree_->Branch("X_py", &X_py);
-	X_One_Tree_->Branch("X_pz", &X_pz);
-	X_One_Tree_->Branch("X_massErr", &X_massErr);
-	X_One_Tree_->Branch("X_JPiPi_mass", &X_JPiPi_mass);
-	X_One_Tree_->Branch("X_JPiPi_VtxProb", &X_JPiPi_VtxProb);
-	X_One_Tree_->Branch("X_JPiPi_Chi2", &X_JPiPi_Chi2);
-	X_One_Tree_->Branch("X_JPiPi_ndof", &X_JPiPi_ndof);
-	X_One_Tree_->Branch("X_JPiPi_px", &X_JPiPi_px);
-	X_One_Tree_->Branch("X_JPiPi_py", &X_JPiPi_py);
-	X_One_Tree_->Branch("X_JPiPi_pz", &X_JPiPi_pz);
-	X_One_Tree_->Branch("X_JPiPi_massErr", &X_JPiPi_massErr);
-	X_One_Tree_->Branch("X_Jpsi_1_mass", &X_Jpsi_1_mass);
-	X_One_Tree_->Branch("X_Jpsi_1_VtxProb", &X_Jpsi_1_VtxProb);
-	X_One_Tree_->Branch("X_Jpsi_1_Chi2", &X_Jpsi_1_Chi2);
-	X_One_Tree_->Branch("X_Jpsi_1_ndof", &X_Jpsi_1_ndof);
-	X_One_Tree_->Branch("X_Jpsi_1_px", &X_Jpsi_1_px);
-	X_One_Tree_->Branch("X_Jpsi_1_py", &X_Jpsi_1_py);
-	X_One_Tree_->Branch("X_Jpsi_1_pz", &X_Jpsi_1_pz);
-	X_One_Tree_->Branch("X_Jpsi_1_massErr", &X_Jpsi_1_massErr);
-	X_One_Tree_->Branch("X_Jpsi_2_mass", &X_Jpsi_2_mass);
-	X_One_Tree_->Branch("X_Jpsi_2_VtxProb", &X_Jpsi_2_VtxProb);
-	X_One_Tree_->Branch("X_Jpsi_2_Chi2", &X_Jpsi_2_Chi2);
-	X_One_Tree_->Branch("X_Jpsi_2_ndof", &X_Jpsi_2_ndof);
-	X_One_Tree_->Branch("X_Jpsi_2_px", &X_Jpsi_2_px);
-	X_One_Tree_->Branch("X_Jpsi_2_py", &X_Jpsi_2_py);
-	X_One_Tree_->Branch("X_Jpsi_2_pz", &X_Jpsi_2_pz);
-	X_One_Tree_->Branch("X_Jpsi_2_massErr", &X_Jpsi_2_massErr);
-	X_One_Tree_->Branch("X_JPiPi_Pi1Idx", &X_JPiPi_Pi1Idx);
-	X_One_Tree_->Branch("X_JPiPi_Pi2Idx", &X_JPiPi_Pi2Idx);
-	X_One_Tree_->Branch("X_JPiPi_Pi1px", &X_JPiPi_Pi1px);
-	X_One_Tree_->Branch("X_JPiPi_Pi1py", &X_JPiPi_Pi1py);
-	X_One_Tree_->Branch("X_JPiPi_Pi1pz", &X_JPiPi_Pi1pz);
-	X_One_Tree_->Branch("X_JPiPi_Pi2px", &X_JPiPi_Pi2px);
-	X_One_Tree_->Branch("X_JPiPi_Pi2py", &X_JPiPi_Pi2py);
-	X_One_Tree_->Branch("X_JPiPi_Pi2pz", &X_JPiPi_Pi2pz);
+    X_One_Tree_->Branch("Jpsi_1_mass", &Jpsi_1_mass);
+    X_One_Tree_->Branch("Jpsi_1_massErr", &Jpsi_1_massErr);
+    X_One_Tree_->Branch("Jpsi_1_massDiff", &Jpsi_1_massDiff);
+    X_One_Tree_->Branch("Jpsi_1_ctau", &Jpsi_1_ctau);
+    X_One_Tree_->Branch("Jpsi_1_ctauErr", &Jpsi_1_ctauErr);
+    X_One_Tree_->Branch("Jpsi_1_Chi2", &Jpsi_1_Chi2);
+    X_One_Tree_->Branch("Jpsi_1_ndof", &Jpsi_1_ndof);
+    X_One_Tree_->Branch("Jpsi_1_VtxProb", &Jpsi_1_VtxProb);
+    X_One_Tree_->Branch("Jpsi_1_px", &Jpsi_1_px);
+    X_One_Tree_->Branch("Jpsi_1_py", &Jpsi_1_py);
+    X_One_Tree_->Branch("Jpsi_1_pz", &Jpsi_1_pz);
+    X_One_Tree_->Branch("Jpsi_1_phi", &Jpsi_1_phi);
+    X_One_Tree_->Branch("Jpsi_1_eta", &Jpsi_1_eta);
+    X_One_Tree_->Branch("Jpsi_1_pt", &Jpsi_1_pt);
 
-	// mass constrain variables
- 	X_One_Tree_->Branch("cs_X_Jpsi_1_mass", &cs_X_Jpsi_1_mass);
-	X_One_Tree_->Branch("cs_X_Jpsi_1_VtxProb", &cs_X_Jpsi_1_VtxProb);
-	X_One_Tree_->Branch("cs_X_Jpsi_1_Chi2", &cs_X_Jpsi_1_Chi2);
-	X_One_Tree_->Branch("cs_X_Jpsi_1_ndof", &cs_X_Jpsi_1_ndof);
-	X_One_Tree_->Branch("cs_X_Jpsi_1_px", &cs_X_Jpsi_1_px);
-	X_One_Tree_->Branch("cs_X_Jpsi_1_py", &cs_X_Jpsi_1_py);
-	X_One_Tree_->Branch("cs_X_Jpsi_1_pz", &cs_X_Jpsi_1_pz);
-	X_One_Tree_->Branch("cs_X_Jpsi_1_massErr", &cs_X_Jpsi_1_massErr);
- 	X_One_Tree_->Branch("cs_X_Jpsi_2_mass", &cs_X_Jpsi_2_mass);
-	X_One_Tree_->Branch("cs_X_Jpsi_2_VtxProb", &cs_X_Jpsi_2_VtxProb);
-	X_One_Tree_->Branch("cs_X_Jpsi_2_Chi2", &cs_X_Jpsi_2_Chi2);
-	X_One_Tree_->Branch("cs_X_Jpsi_2_ndof", &cs_X_Jpsi_2_ndof);
-	X_One_Tree_->Branch("cs_X_Jpsi_2_px", &cs_X_Jpsi_2_px);
-	X_One_Tree_->Branch("cs_X_Jpsi_2_py", &cs_X_Jpsi_2_py);
-	X_One_Tree_->Branch("cs_X_Jpsi_2_pz", &cs_X_Jpsi_2_pz);
-	X_One_Tree_->Branch("cs_X_Jpsi_2_massErr", &cs_X_Jpsi_2_massErr);
- 	X_One_Tree_->Branch("cs_X_JPiPi_mass", &cs_X_JPiPi_mass);
-	X_One_Tree_->Branch("cs_X_JPiPi_VtxProb", &cs_X_JPiPi_VtxProb);
-	X_One_Tree_->Branch("cs_X_JPiPi_Chi2", &cs_X_JPiPi_Chi2);
-	X_One_Tree_->Branch("cs_X_JPiPi_ndof", &cs_X_JPiPi_ndof);
-	X_One_Tree_->Branch("cs_X_JPiPi_px ", &cs_X_JPiPi_px );
-	X_One_Tree_->Branch("cs_X_JPiPi_py", &cs_X_JPiPi_py);
-	X_One_Tree_->Branch("cs_X_JPiPi_pz", &cs_X_JPiPi_pz);
-	X_One_Tree_->Branch("cs_X_JPiPi_massErr", &cs_X_JPiPi_massErr);
- 	X_One_Tree_->Branch("cs_X_mass_Psi2S", &cs_X_mass_Psi2S);
-	X_One_Tree_->Branch("cs_X_VtxProb_Psi2S", &cs_X_VtxProb_Psi2S);
-	X_One_Tree_->Branch("cs_X_Chi2_Psi2S", &cs_X_Chi2_Psi2S);
-	X_One_Tree_->Branch("cs_X_ndof_Psi2S", &cs_X_ndof_Psi2S);
-	X_One_Tree_->Branch("cs_X_px_Psi2S", &cs_X_px_Psi2S);
-	X_One_Tree_->Branch("cs_X_py_Psi2S", &cs_X_py_Psi2S);
-	X_One_Tree_->Branch("cs_X_pz_Psi2S", &cs_X_pz_Psi2S);
-	X_One_Tree_->Branch("cs_X_massErr_Psi2S", &cs_X_massErr_Psi2S);
- 	X_One_Tree_->Branch("cs_X_JPiPi_mass_Psi2S", &cs_X_JPiPi_mass_Psi2S);
-	X_One_Tree_->Branch("cs_X_JPiPi_VtxProb_Psi2S", &cs_X_JPiPi_VtxProb_Psi2S);
-	X_One_Tree_->Branch("cs_X_JPiPi_Chi2_Psi2S", &cs_X_JPiPi_Chi2_Psi2S);
-	X_One_Tree_->Branch("cs_X_JPiPi_ndof_Psi2S", &cs_X_JPiPi_ndof_Psi2S);
-	X_One_Tree_->Branch("cs_X_JPiPi_px_Psi2S", &cs_X_JPiPi_px_Psi2S);
-	X_One_Tree_->Branch("cs_X_JPiPi_py_Psi2S", &cs_X_JPiPi_py_Psi2S);
-	X_One_Tree_->Branch("cs_X_JPiPi_pz_Psi2S", &cs_X_JPiPi_pz_Psi2S);
-	X_One_Tree_->Branch("cs_X_JPiPi_massErr_Psi2S", &cs_X_JPiPi_massErr_Psi2S);
- 	X_One_Tree_->Branch("cs_X_mass_X3872", &cs_X_mass_X3872);
-	X_One_Tree_->Branch("cs_X_VtxProb_X3872", &cs_X_VtxProb_X3872);
-	X_One_Tree_->Branch("cs_X_Chi2_X3872", &cs_X_Chi2_X3872);
-	X_One_Tree_->Branch("cs_X_ndof_X3872", &cs_X_ndof_X3872);
-	X_One_Tree_->Branch("cs_X_px_X3872", &cs_X_px_X3872);
-	X_One_Tree_->Branch("cs_X_py_X3872", &cs_X_py_X3872);
-	X_One_Tree_->Branch("cs_X_pz_X3872", &cs_X_pz_X3872);
-	X_One_Tree_->Branch("cs_X_massErr_X3872", &cs_X_massErr_X3872);
- 	X_One_Tree_->Branch("cs_X_JPiPi_mass_X3872", &cs_X_JPiPi_mass_X3872);
-	X_One_Tree_->Branch("cs_X_JPiPi_VtxProb_X3872", &cs_X_JPiPi_VtxProb_X3872);
-	X_One_Tree_->Branch("cs_X_JPiPi_Chi2_X3872", &cs_X_JPiPi_Chi2_X3872);
-	X_One_Tree_->Branch("cs_X_JPiPi_ndof_X3872", &cs_X_JPiPi_ndof_X3872);
-	X_One_Tree_->Branch("cs_X_JPiPi_px_X3872", &cs_X_JPiPi_px_X3872);
-	X_One_Tree_->Branch("cs_X_JPiPi_py_X3872", &cs_X_JPiPi_py_X3872);
-	X_One_Tree_->Branch("cs_X_JPiPi_pz_X3872", &cs_X_JPiPi_pz_X3872);
-	X_One_Tree_->Branch("cs_X_JPiPi_massErr_X3872", &cs_X_JPiPi_massErr_X3872);
+    X_One_Tree_->Branch("Jpsi_2_mass", &Jpsi_2_mass);
+    X_One_Tree_->Branch("Jpsi_2_massErr", &Jpsi_2_massErr);
+    X_One_Tree_->Branch("Jpsi_2_massDiff", &Jpsi_2_massDiff);
+    X_One_Tree_->Branch("Jpsi_2_ctau", &Jpsi_2_ctau);
+    X_One_Tree_->Branch("Jpsi_2_ctauErr", &Jpsi_2_ctauErr);
+    X_One_Tree_->Branch("Jpsi_2_Chi2", &Jpsi_2_Chi2);
+    X_One_Tree_->Branch("Jpsi_2_ndof", &Jpsi_2_ndof);
+    X_One_Tree_->Branch("Jpsi_2_VtxProb", &Jpsi_2_VtxProb);
+    X_One_Tree_->Branch("Jpsi_2_px", &Jpsi_2_px);
+    X_One_Tree_->Branch("Jpsi_2_py", &Jpsi_2_py);
+    X_One_Tree_->Branch("Jpsi_2_pz", &Jpsi_2_pz);
+    X_One_Tree_->Branch("Jpsi_2_phi", &Jpsi_2_phi);
+    X_One_Tree_->Branch("Jpsi_2_eta", &Jpsi_2_eta);
+    X_One_Tree_->Branch("Jpsi_2_pt", &Jpsi_2_pt);
+
+    X_One_Tree_->Branch("Ups_mass", &Ups_mass);
+    X_One_Tree_->Branch("Ups_massErr", &Ups_massErr);
+    X_One_Tree_->Branch("Ups_massDiff", &Ups_massDiff);
+    X_One_Tree_->Branch("Ups_ctau", &Ups_ctau);
+    X_One_Tree_->Branch("Ups_ctauErr", &Ups_ctauErr);
+    X_One_Tree_->Branch("Ups_Chi2", &Ups_Chi2);
+    X_One_Tree_->Branch("Ups_ndof", &Ups_ndof);
+    X_One_Tree_->Branch("Ups_VtxProb", &Ups_VtxProb);
+    X_One_Tree_->Branch("Ups_px", &Ups_px);
+    X_One_Tree_->Branch("Ups_py", &Ups_py);
+    X_One_Tree_->Branch("Ups_pz", &Ups_pz);
+    X_One_Tree_->Branch("Ups_phi", &Ups_phi);
+    X_One_Tree_->Branch("Ups_eta", &Ups_eta);
+    X_One_Tree_->Branch("Ups_pt", &Ups_pt);
+
+    X_One_Tree_->Branch("Pri_mass", &Pri_mass);
+    X_One_Tree_->Branch("Pri_massErr", &Pri_massErr);
+    X_One_Tree_->Branch("Pri_ctau", &Pri_ctau);
+    X_One_Tree_->Branch("Pri_ctauErr", &Pri_ctauErr);
+    X_One_Tree_->Branch("Pri_Chi2", &Pri_Chi2);
+    X_One_Tree_->Branch("Pri_ndof", &Pri_ndof);
+    X_One_Tree_->Branch("Pri_VtxProb", &Pri_VtxProb);
+    X_One_Tree_->Branch("Pri_px", &Pri_px);
+    X_One_Tree_->Branch("Pri_py", &Pri_py);
+    X_One_Tree_->Branch("Pri_pz", &Pri_pz);
+    X_One_Tree_->Branch("Pri_phi", &Pri_phi);
+    X_One_Tree_->Branch("Pri_eta", &Pri_eta);
+    X_One_Tree_->Branch("Pri_pt", &Pri_pt);
+
+
+
 	if (doMC)
 	{
 		X_One_Tree_->Branch("MC_X_px", &MC_X_px);
@@ -1896,25 +1833,25 @@ void MultiLepPAT::beginJob()
 		X_One_Tree_->Branch("MC_Grandgranddau_mu4px", &MC_Grandgranddau_mu4px);
 		X_One_Tree_->Branch("MC_Grandgranddau_mu4py", &MC_Grandgranddau_mu4py);
 		X_One_Tree_->Branch("MC_Grandgranddau_mu4pz", &MC_Grandgranddau_mu4pz);
-		X_One_Tree_->Branch("Match_mu1px", &Match_mu1px);
-		X_One_Tree_->Branch("Match_mu1py", &Match_mu1py);
-		X_One_Tree_->Branch("Match_mu1pz", &Match_mu1pz);
-		X_One_Tree_->Branch("Match_mu2px", &Match_mu2px);
-		X_One_Tree_->Branch("Match_mu2py", &Match_mu2py);
-		X_One_Tree_->Branch("Match_mu2pz", &Match_mu2pz);
-		X_One_Tree_->Branch("Match_mu3px", &Match_mu3px);
-		X_One_Tree_->Branch("Match_mu3py", &Match_mu3py);
-		X_One_Tree_->Branch("Match_mu3pz", &Match_mu3pz);
-		X_One_Tree_->Branch("Match_mu4px", &Match_mu4px);
-		X_One_Tree_->Branch("Match_mu4py", &Match_mu4py);
-		X_One_Tree_->Branch("Match_mu4pz", &Match_mu4pz);
 
-		X_One_Tree_->Branch("Match_pi1px", &Match_pi1px);
-		X_One_Tree_->Branch("Match_pi1py", &Match_pi1py);
-		X_One_Tree_->Branch("Match_pi1pz", &Match_pi1pz);
-		X_One_Tree_->Branch("Match_pi2px", &Match_pi2px);
-		X_One_Tree_->Branch("Match_pi2py", &Match_pi2py);
-		X_One_Tree_->Branch("Match_pi2pz", &Match_pi2pz);
+		X_One_Tree_->Branch("Match_Jpsi_1_mu1_px", &Match_Jpsi_1_mu1_px);
+        X_One_Tree_->Branch("Match_Jpsi_1_mu1_py", &Match_Jpsi_1_mu1_py);
+        X_One_Tree_->Branch("Match_Jpsi_1_mu1_pz", &Match_Jpsi_1_mu1_pz);
+        X_One_Tree_->Branch("Match_Jpsi_1_mu2_px", &Match_Jpsi_1_mu2_px);
+        X_One_Tree_->Branch("Match_Jpsi_1_mu2_py", &Match_Jpsi_1_mu2_py);
+        X_One_Tree_->Branch("Match_Jpsi_1_mu2_pz", &Match_Jpsi_1_mu2_pz);
+        X_One_Tree_->Branch("Match_Jpsi_2_mu1_px", &Match_Jpsi_2_mu1_px);
+        X_One_Tree_->Branch("Match_Jpsi_2_mu1_py", &Match_Jpsi_2_mu1_py);
+        X_One_Tree_->Branch("Match_Jpsi_2_mu1_pz", &Match_Jpsi_2_mu1_pz);
+        X_One_Tree_->Branch("Match_Jpsi_2_mu2_px", &Match_Jpsi_2_mu2_px);
+        X_One_Tree_->Branch("Match_Jpsi_2_mu2_py", &Match_Jpsi_2_mu2_py);
+        X_One_Tree_->Branch("Match_Jpsi_2_mu2_pz", &Match_Jpsi_2_mu2_pz);
+        X_One_Tree_->Branch("Match_Ups_mu1_px", &Match_Ups_mu1_px);
+        X_One_Tree_->Branch("Match_Ups_mu1_py", &Match_Ups_mu1_py);
+        X_One_Tree_->Branch("Match_Ups_mu1_pz", &Match_Ups_mu1_pz);
+        X_One_Tree_->Branch("Match_Ups_mu2_px", &Match_Ups_mu2_px);
+        X_One_Tree_->Branch("Match_Ups_mu2_py", &Match_Ups_mu2_py);
+        X_One_Tree_->Branch("Match_Ups_mu2_pz", &Match_Ups_mu2_pz);
 	} // if(doMC)
 } // begin Job
 
