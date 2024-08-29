@@ -173,28 +173,31 @@ private:
     }
 
     // Some useful methods for maintenance, readability and elegance    
-    virtual void tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
-                                  KinematicParticleFactoryFromTransientTrack& arg_MuFactory,
-                                  const MagneticField&                        arg_bField,
-                                  const TrackRef arg_Trk1,     const TrackRef arg_Trk2       ) const;
+    virtual static void tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
+                                         KinematicParticleFactoryFromTransientTrack& arg_MuFactory,
+                                         const MagneticField&                        arg_bField,
+                                         const TrackRef arg_Trk1,     const TrackRef arg_Trk2       ) const;
 
-    virtual bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults,
-                                const string&                               arg_Message) const;
-    virtual bool particlesToVtx(RefCountedKinematicTree&                    arg_VertexFitTree
-                                const vector<RefCountedKinematicParticle>&  arg_Muons,
-                                const string&                               arg_Message) const;
+    virtual static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults) const;
+    virtual static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults,
+                                       const string&                               arg_Message) const;
+    virtual static bool particlesToVtx(RefCountedKinematicTree&                    arg_VertexFitTree
+                                       const vector<RefCountedKinematicParticle>&  arg_Muons,
+                                       const string&                               arg_Message) const;
     
-    virtual bool extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
-                               RefCountedKinematicParticle& res_Part,
-                               RefCountedKinematicVertex&   res_Vtx,
-                               KinematicParameters&         res_Param,
-                               double&                      res_massErr) const;
+    virtual static bool extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
+                                      RefCountedKinematicParticle& res_Part,
+                                      RefCountedKinematicVertex&   res_Vtx,
+                                      KinematicParameters&         res_Param,
+                                      double&                      res_massErr) const;
 
     // To avoid overlapping muon pairs
     using muon_t   = RefCountedKinematicParticle;
     using muList_t = std::pair< vector<muon_t>, vector<uint> >;
-    virtual bool isOverlapPair(const muList_t& arg_MuonPair1, 
+    virtual static bool isOverlapPair(const muList_t& arg_MuonPair1, 
                                const muList_t& arg_MuonPair2 ) const;
+    // Deal with "multi-candidate" issue
+    virtual static double 
     
     // Member data
 

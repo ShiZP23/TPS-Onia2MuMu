@@ -799,7 +799,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                                                            chi2, ndof, muMassSigma) );
             transMuPairId.push_back(iMuon2 - thePATMuonHandle->begin());
             // Judging with vertex fitting.
-            if(!particlesToVtx(transMuonPair, "muon pairing")){
+            if(!particlesToVtx(transMuonPair)){
                 continue;
             }
             // Passing all the checks, store the muon pair as pairs of RefCountedKinematicParticle.
@@ -828,6 +828,11 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
      *      - Store the fitting results into temporary vectors.
      * [Note]
      *      Mass constriant is not applied to any quarkonia candidates.
+     *      TO IMPR: Multiple candidate issue.
+     *      - Difficulty: Identify the "multi-candidate" case. (Hashing?)
+     *      - Distinction between Jpsi and Upsilon is important!
+     *      - Possible selection: massErr ratio; total pT^2;
+     *      - Add event number 
     **************************************************************************/
     // Classes for the fitting process.
     RefCountedKinematicTree vtxFitTree_Jpsi_1;
@@ -946,6 +951,10 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                     Jpsi_2_py->push_back(Jpsi_2_Fit_noMC->currentState().kinematicParameters().momentum().y());
                     Jpsi_2_pz->push_back(Jpsi_2_Fit_noMC->currentState().kinematicParameters().momentum().z());
                 }
+                // [TODO] Store the difference between fitted mass with std. mass.
+                // [TODO] Store pT eta phi ctau and other kinematic parameters. "As much as possible"
+                // [HINT] Only Jpsi ctau required. 
+                // [HINT] DR may be useful in BKG suppression. (To deal with pile up. Do it later.)
                 else{
                     // Store "error code" -9 for the secondary particles (quarkonia).
                     Jpsi_2_mass->push_back(-9);
@@ -982,7 +991,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             }
         }
     }
-
+    // Currently: Event
 	if (X_VtxProb->size() > 0 || doMC)
 	{
 		X_One_Tree_->Fill();
@@ -1279,6 +1288,38 @@ void MultiLepPAT::tracksToMuonPair(vector<RefCountedKinematicParticle>&        a
     arg_MuonResults.push_back(arg_MuFactory.particle(transTrk1, muMass, chi2, ndof, muMassSigma));
     arg_MuonResults.push_back(arg_MuFactory.particle(transTrk2, muMass, chi2, ndof, muMassSigma));
     return ;
+}
+
+/******************************************************************************
+ * [Name of function]  
+ *      particlesToVtx
+ * [Description]  
+ *      Construct muons from tracks.
+ *      Assuming muon mass and mass error as PDG 2023 values.
+ *      Adds reconstructed muons to the arg_Muons.
+ * [Parameters]
+ *      vector<RefCountedKinematicParticle>&        arg_Muons
+ *          - The vector to which reconstructed muons are added.
+ * [Return value]
+ *      (void)
+ * [Note]
+ *      A "silent" version of fitting particles to vertex. No error message
+ *      will be printed in case of failed fitting.
+******************************************************************************/
+
+bool MultiLepPAT::particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_Muons) const{
+    KinematicParticleVertexFitter fitter;
+    RefCountedKinematicTree vertexFitTree;
+    bool fitError = false;
+    try{
+        vertexFitTree = fitter.fit(arg_Muons);
+    }catch(...){
+        fitError = true;
+    }
+    if (fitError || !vertexFitTree->isValid()){
+        return false;
+    }
+    return true;
 }
 
 /******************************************************************************
