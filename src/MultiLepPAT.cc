@@ -194,7 +194,7 @@ MultiLepPAT::MultiLepPAT(const edm::ParameterSet &iConfig)
 
       Jpsi_1_ctau(0), Jpsi_1_ctauErr(0), Jpsi_1_Chi2(0), Jpsi_1_ndof(0), Jpsi_1_VtxProb(0),
       Jpsi_2_ctau(0), Jpsi_2_ctauErr(0), Jpsi_2_Chi2(0), Jpsi_2_ndof(0), Jpsi_2_VtxProb(0),
-         Ups_ctau(0),    Ups_ctauErr(0),    Ups_Chi2(0),    Ups_ndof(0),    Ups_VtxProb(0),
+                                            Ups_Chi2(0),    Ups_ndof(0),    Ups_VtxProb(0),
       
       Jpsi_1_phi(0), Jpsi_1_eta(0), Jpsi_1_pt(0),
       Jpsi_2_phi(0), Jpsi_2_eta(0), Jpsi_2_pt(0),
@@ -757,6 +757,14 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 		return;
 	}
 
+    // When number of muons goes beyond 4000, the judging algorithm may not work.
+    // This is a temporary solution, yet shall cope with most cases.
+    if (thePATMuonHandle->size() > 4000){
+        std::cout << "Too many muons in the event. Skipping." << std::endl;
+        std::cout << "Number of muons: " << thePATMuonHandle->size() << std::endl;
+        return;
+    }
+
     // Temporary storage for the muon pair [Annotated by Eric Wang, 20240704]
     std::vector<RefCountedKinematicParticle> transMuonPair;
     std::vector<uint>                        transMuPairId;
@@ -853,7 +861,6 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
      *      - Difficulty: Identify the "multi-candidate" case. (Hashing?)
      *      - Distinction between Jpsi and Upsilon is important!
      *      - Possible selection: massErr ratio; total pT^2;
-     *      - Add event number 
     **************************************************************************/
     // Classes for the fitting process.
     RefCountedKinematicTree vtxFitTree_Jpsi_1;
@@ -1015,7 +1022,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                 }
                 // [TODO] Store the difference between fitted mass with std. mass.
                 // [TODO] Store pT eta phi ctau and other kinematic parameters. "As much as possible"
-                // [HINT] Only Jpsi ctau required. 
+                // [SOLVED] [HINT] Only Jpsi ctau required. 
                 // [HINT] DR may be useful in BKG suppression. (To deal with pile up. Do it later.)
                 else{
                     // Store "error code" -9 for the secondary particles (quarkonia).
@@ -1039,8 +1046,6 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                     Ups_mass->push_back(    Ups_Fit_noMC->currentState().mass());
                     Ups_massErr->push_back( Ups_Fit_noMC->currentState().massErr());
                     Ups_massDiff->push_back(Ups_Fit_noMC->currentState().mass() - myUpsMass);
-                    Ups_ctau->push_back(   GetcTau(   Ups_Fit_noMC, Ups_Vtx_noMC, theBeamSpotV));
-                    Ups_ctauErr->push_back(GetcTauErr(Ups_Fit_noMC, Ups_Vtx_noMC, theBeamSpotV));
                     Ups_Chi2->push_back(double(Ups_Vtx_noMC->chiSquared()));
                     Ups_ndof->push_back(double(Ups_Vtx_noMC->degreesOfFreedom()));
                     Ups_VtxProb->push_back(ChiSquaredProbability((double)(Ups_Vtx_noMC->chiSquared()), 
@@ -1057,8 +1062,6 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                     Ups_mass->push_back(-9);
                     Ups_massErr->push_back(-9);
                     Ups_massDiff->push_back(-9);
-                    Ups_ctau->push_back(-9);
-                    Ups_ctauErr->push_back(-9);
                     Ups_Chi2->push_back(-9);
                     Ups_ndof->push_back(-9);
                     Ups_VtxProb->push_back(-9);
@@ -1072,6 +1075,31 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             }
         }
     }
+    /**************************************************************************
+     * [Section]
+     *      Dealing with "multiple candidate" issue.
+     * [Description]
+     *      The same set of muons may produce multiple candidates. In the end, 
+     *      only one candidate is selected. The selection is based on the 
+     *      evaluation of the fitting results.
+     * [Implementation]
+     *      - Loop over all candidates in this event.
+     *          - Store following information:
+     *              - The index of the candidate.
+     *              - Evaluation of the fitting results.
+     *              - The hash value derived from index of the muons.
+     *      - Sort the candidates by the hash value.
+     *          - Same hash value, then sort by the evaluation results.
+     *      - Select the best candidate.
+     *          - In other words, for "same-hash band", keep only the first.
+     * [Note]
+     *      - The hash value is derived from the index of the muons.
+     *        For muons i_1, i_2 ... i_6 used, the hash value is:
+     *          HASH = C_{i_1}^5 + C_{i_2}^5 + ... + C_{i_6}^5
+     *        where C_{m}^n is the combination number "m choose n".
+    **************************************************************************/
+    
+    
     // Currently: Event
 	if (X_VtxProb->size() > 0 || doMC)
 	{
@@ -1277,8 +1305,6 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     Ups_mass->clear();
     Ups_massErr->clear();
     Ups_massDiff->clear();
-    Ups_ctau->clear();
-    Ups_ctauErr->clear();
     Ups_Chi2->clear();
     Ups_ndof->clear();
     Ups_VtxProb->clear();
@@ -1625,6 +1651,96 @@ double MultiLepPAT::fitResEval(double arg_massDiff_Jpsi_1, double arg_massErr_Jp
            arg_massDiff_Ups    * arg_massDiff_Ups    / (arg_massErr_Ups    * arg_massErr_Ups   ) ;
 }
 
+/******************************************************************************
+ * [Name of function]  
+ *      hashedMuons::hashedMuons
+ * [Description]
+ *      Constructor of the hashedMuons class.
+ * [Parameters]
+ *      unsigned long long arg_mu1_idx, arg_mu2_idx, arg_mu3_idx, 
+ *                         arg_mu4_idx, arg_mu5_idx, arg_mu6_idx
+ *          - The index of the muons used in the candidate.
+ *      unsigned int arg_candidate_idx
+ *          - The index of the candidate.
+ *      double arg_Jpsi_1_massDiff, arg_Jpsi_1_massErr, 
+ *             arg_Jpsi_2_massDiff, arg_Jpsi_2_massErr,
+ *             arg_Ups_massDiff,    arg_Ups_massErr  
+ *          - The mass difference and mass error used to derive evaluation.
+ * [Return value]
+ *      (hashedMuons)
+ * [Note]
+ *      To be used in resolving "multi-candidate" events.
+******************************************************************************/
+
+MultiLepPAT::hashedMuons::hashedMuons(unsigned long long arg_mu1_idx, 
+                                      unsigned long long arg_mu2_idx,
+                                      unsigned long long arg_mu3_idx, 
+                                      unsigned long long arg_mu4_idx, 
+                                      unsigned long long arg_mu5_idx, 
+                                      unsigned long long arg_mu6_idx,
+                                      unsigned int arg_candidate_idx,
+                                      double arg_Jpsi_1_massDiff, double arg_Jpsi_1_massErr,
+                                      double arg_Jpsi_2_massDiff, double arg_Jpsi_2_massErr,
+                                      double arg_Ups_massDiff,    double arg_Ups_massErr   ){
+    hashVal = hexMuonHash(arg_mu1_idx, arg_mu2_idx, arg_mu3_idx, 
+                          arg_mu4_idx, arg_mu5_idx, arg_mu6_idx);
+    candIdx = arg_candidate_idx;
+    evalRes = fitResEval(arg_Jpsi_1_massDiff, arg_Jpsi_1_massErr,
+                         arg_Jpsi_2_massDiff, arg_Jpsi_2_massErr,
+                         arg_Ups_massDiff,    arg_Ups_massErr   );
+}
+
+/******************************************************************************
+ * [Name of function]  
+ *      hashedMuons::nChoose5
+ * [Description]
+ *      Calculate the combination number "n choose 5".
+ * [Parameters]
+ *      unsigned long long arg_n
+ *          - The number n.
+ * [Return value]
+ *      (unsigned long long)
+ *          - The combination number "n choose 5".
+ * [Note]
+ *      To be used in hashing the 6-muon set.
+******************************************************************************/
+
+unsigned long long MultiLepPAT::hashedMuons::nChoose5(unsigned long long arg_n){
+    return arg_n * (arg_n - 1) * (arg_n - 2) * (arg_n - 3) * (arg_n - 4) / 120;
+}
+
+/******************************************************************************
+ * [Name of function]  
+ *      hashedMuons::hexMuonHash
+ * [Description]
+ *      Calculate the hash value of the 6-muon set.
+ * [Parameters]
+ *      unsigned long long arg_mu1_idx, arg_mu2_idx, arg_mu3_idx, 
+ *                         arg_mu4_idx, arg_mu5_idx, arg_mu6_idx
+ *          - The index of the muons used in the candidate.
+ * [Return value]
+ *      (unsigned long long)
+ *          - The hash value of the 6-muon set.
+ * [Note]
+ *      Maps from a "6-muon" index set to a hash value.
+ *      For a total of n muons, the hash value will cover exactly 
+******************************************************************************/
+
+unsigned long long MultiLepPAT::hashedMuons::hexMuonHash(unsigned long long arg_mu1_idx,
+                                                         unsigned long long arg_mu2_idx,
+                                                         unsigned long long arg_mu3_idx,
+                                                         unsigned long long arg_mu4_idx, 
+                                                         unsigned long long arg_mu5_idx,
+                                                         unsigned long long arg_mu6_idx ){
+    return nChoose5(arg_mu1_idx) + nChoose5(arg_mu2_idx) + nChoose5(arg_mu3_idx) +
+           nChoose5(arg_mu4_idx) + nChoose5(arg_mu5_idx) + nChoose5(arg_mu6_idx)  ;
+}
+
+bool operator<(const hashedMuons& arg_rhs) const{
+    return ( hashVal  < arg_rhs.hashVal || 
+            (hashVal == arg_rhs.hashVal && evalRes < arg_rhs.evalRes) );
+}
+
 // ------------ method called once each job just before starting event loop  ------------
 void MultiLepPAT::beginRun(edm::Run const &iRun, edm::EventSetup const &iSetup)
 {
@@ -1759,8 +1875,6 @@ void MultiLepPAT::beginJob()
     X_One_Tree_->Branch("Ups_mass", &Ups_mass);
     X_One_Tree_->Branch("Ups_massErr", &Ups_massErr);
     X_One_Tree_->Branch("Ups_massDiff", &Ups_massDiff);
-    X_One_Tree_->Branch("Ups_ctau", &Ups_ctau);
-    X_One_Tree_->Branch("Ups_ctauErr", &Ups_ctauErr);
     X_One_Tree_->Branch("Ups_Chi2", &Ups_Chi2);
     X_One_Tree_->Branch("Ups_ndof", &Ups_ndof);
     X_One_Tree_->Branch("Ups_VtxProb", &Ups_VtxProb);

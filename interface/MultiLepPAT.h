@@ -205,6 +205,26 @@ private:
     virtual static double fitResEval(double arg_massDiff_Jpsi_1, double arg_massErr_Jpsi_1,
                                      double arg_massDiff_Jpsi_2, double arg_massErr_Jpsi_2,
                                      double arg_massDiff_Ups,    double arg_massErr_Ups   );
+
+    class hashedMuons{
+        public:
+            hashedMuons(unsigned long long arg_mu1_idx, unsigned long long arg_mu2_idx,
+                        unsigned long long arg_mu3_idx, unsigned long long arg_mu4_idx, 
+                        unsigned long long arg_mu5_idx, unsigned long long arg_mu6_idx );
+            static unsigned long long nChoose5(unsigned long long arg_n);
+            static unsigned long long hexMuonHash(unsigned long long arg_mu1_idx,
+                                                  unsigned long long arg_mu2_idx,
+                                                  unsigned long long arg_mu3_idx,
+                                                  unsigned long long arg_mu4_idx, 
+                                                  unsigned long long arg_mu5_idx,
+                                                  unsigned long long arg_mu6_idx );
+            // Overloading operator "<" for hashedMuons. Called in sorting.
+            bool operator<(const hashedMuons& arg_rhs) const;
+        private:
+            unsigned int       candIdx;
+            unsigned long long hashVal;
+            double             evalRes;
+    };
                         
     
     // Member data
@@ -342,7 +362,7 @@ private:
                
     vector<float> *Jpsi_1_ctau, *Jpsi_1_ctauErr, *Jpsi_1_Chi2, *Jpsi_1_ndof, *Jpsi_1_VtxProb,
                   *Jpsi_2_ctau, *Jpsi_2_ctauErr, *Jpsi_2_Chi2, *Jpsi_2_ndof, *Jpsi_2_VtxProb,
-                     *Ups_ctau,    *Ups_ctauErr,    *Ups_Chi2,    *Ups_ndof,    *Ups_VtxProb;
+                                                    *Ups_Chi2,    *Ups_ndof,    *Ups_VtxProb;
                   
     vector<float> *Jpsi_1_phi, *Jpsi_1_eta, *Jpsi_1_pt,
                   *Jpsi_2_phi, *Jpsi_2_eta, *Jpsi_2_pt,
@@ -393,7 +413,7 @@ private:
     *MC_Grandgranddau_mu4px,
     *MC_Grandgranddau_mu4py,
     *MC_Grandgranddau_mu4pz;
-    
+
     vector<int>
     *MC_X_chg,
     *MC_Dau_JpsipdgId,
@@ -405,7 +425,7 @@ private:
     *MC_Granddau_pi2pdgId,
     *MC_Grandgranddau_mu3pdgId,
     *MC_Grandgranddau_mu4pdgId;
-    
+
     vector<float> 
     *Match_mu1px,
     *Match_mu1py,
@@ -419,7 +439,7 @@ private:
     *Match_mu4px,
     *Match_mu4py,
     *Match_mu4pz,
-    
+
     *Match_pi1px,
     *Match_pi1py,
     *Match_pi1pz,
