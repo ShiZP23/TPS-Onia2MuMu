@@ -196,6 +196,7 @@ private:
                                       double&                      res_massErr);
 
     // To avoid overlapping muon pairs
+    // Note: always ensures that in muList_t, the first muon is the one with the smaller index.
     using muon_t   = RefCountedKinematicParticle;
     using muList_t = std::pair< vector<muon_t>, vector<uint> >;
     virtual static bool isOverlapPair(const muList_t& arg_MuonPair1, 
@@ -205,6 +206,20 @@ private:
     virtual static double fitResEval(double arg_massDiff_Jpsi_1, double arg_massErr_Jpsi_1,
                                      double arg_massDiff_Jpsi_2, double arg_massErr_Jpsi_2,
                                      double arg_massDiff_Ups,    double arg_massErr_Ups   );
+
+    // Ordered vector of muon indices representing a "combination" of muons.
+    using muIdxSet_t = std::shared_ptr< vector<unsigned int> >;
+    // Make muon index list from 6 muons.
+    virtual static muIdxSet_t makeMuonIdxSet(unsigned int arg_MuonIdx1, unsigned int arg_MuonIdx2,
+                                             unsigned int arg_MuonIdx3, unsigned int arg_MuonIdx4,
+                                             unsigned int arg_MuonIdx5, unsigned int arg_MuonIdx6 );
+    // Alternatively, make muon index list from "3 pairs of muons".
+    virtual static muIdxSet_t makeMuonIdxSet(const muList_t& arg_MuonPair1, 
+                                             const muList_t& arg_MuonPair2, 
+                                             const muList_t& arg_MuonPair3 );
+    // Check if overlap.
+    virtual static bool isOverlapSet(const muIdxSet_t& arg_MuonIdxList1, 
+                                     const muIdxSet_t& arg_MuonIdxList2 );
                         
     
     // Member data
@@ -333,6 +348,9 @@ private:
     vector<float> *Jpsi_1_mu_1_Idx, *Jpsi_1_mu_2_Idx, 
                   *Jpsi_2_mu_1_Idx, *Jpsi_2_mu_2_Idx,
                      *Ups_mu_1_Idx,    *Ups_mu_2_Idx;
+    // Muon index set stored for each candidate of Jpsi + Jpsi + Upsilon.
+    // Used to resolve "multiple candidates".
+    vector<muIdxSet_t> *muIdxSet;
 
     // Reconstructed Jpsi and Upsilon.
     // Note: Used "vector<T>* a, b" instead of "vector<T> *a, *b"
@@ -355,8 +373,8 @@ private:
     vector<float>    *Pri_mass,  *Pri_massErr,
                      *Pri_ctau,  *Pri_ctauErr, *Pri_Chi2, *Pri_ndof, *Pri_VtxProb,
                      *Pri_px,    *Pri_py,    Pri_pz, 
-                     *Pri_phi,   *Pri_eta,   Pri_pt;
-
+                     *Pri_phi,   *Pri_eta,   Pri_pt;  
+                     
     //doMC
     vector<float> 
     *MC_X_px,

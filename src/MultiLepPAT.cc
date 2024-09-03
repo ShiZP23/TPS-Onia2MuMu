@@ -32,6 +32,7 @@
 ******************************************************************************/
 
 // system include files
+#include <algorithm>
 #include <memory>
 #include <utility>
 #include "TLorentzVector.h"
@@ -187,7 +188,13 @@ MultiLepPAT::MultiLepPAT(const edm::ParameterSet &iConfig)
 	  mupulldXdZ_pos_ArbDef(0), mupulldYdZ_pos_ArbDef(0),
 	  mupulldXdZ_pos_ArbST(0), mupulldYdZ_pos_ArbST(0),
 	  mupulldXdZ_pos_noArb_any(0), mupulldYdZ_pos_noArb_any(0),
-	  
+
+      Jpsi_1_mu_1_Idx(0), Jpsi_1_mu_2_Idx(0),
+      Jpsi_2_mu_1_Idx(0), Jpsi_2_mu_2_Idx(0),
+	     Ups_mu_1_Idx(0),    Ups_mu_2_Idx(0),
+
+      muIdxSet(0),
+
       Jpsi_1_mass(0), Jpsi_1_massErr(0), Jpsi_1_massDiff(0),
       Jpsi_2_mass(0), Jpsi_2_massErr(0), Jpsi_2_massDiff(0),
          Ups_mass(0),    Ups_massErr(0),    Ups_massDiff(0),
@@ -904,6 +911,8 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                 Jpsi_2_mu2_index->push_back(muPair_Jpsi_2->second[1]);
                 Ups_mu1_index->push_back(muPair_Ups->second[0]);
                 Ups_mu2_index->push_back(muPair_Ups->second[1]);
+                // Muon index set stored for "multiple candidate" issue.
+                muIdxSet->push_back(makeMuonIdxSet(muPair_Jpsi_1, muPair_Jpsi_2, muPair_Ups));
                 // Check if all fit trees give non-null results.
                 if(isValidJpsi_1 && isValidJpsi_2 && isValidUps){
                     // Extract the vertex and the particle parameters from valid results.
@@ -1254,6 +1263,8 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     Jpsi_1_phi->clear();
     Jpsi_1_eta->clear();
     Jpsi_1_pt->clear();
+    Jpsi_1_mu_1_Idx->clear();
+    Jpsi_1_mu_2_Idx->clear();
 
     Jpsi_2_mass->clear();
     Jpsi_2_massErr->clear();
@@ -1269,6 +1280,8 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     Jpsi_2_phi->clear();
     Jpsi_2_eta->clear();
     Jpsi_2_pt->clear();
+    Jpsi_2_mu_1_Idx->clear();
+    Jpsi_2_mu_2_Idx->clear();
 
     Ups_mass->clear();
     Ups_massErr->clear();
@@ -1282,6 +1295,8 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     Ups_phi->clear();
     Ups_eta->clear();
     Ups_pt->clear();
+    Ups_mu_1_Idx->clear();
+    Ups_mu_2_Idx->clear();
 } // analyze
 // 
 
@@ -1617,6 +1632,101 @@ double MultiLepPAT::fitResEval(double arg_massDiff_Jpsi_1, double arg_massErr_Jp
     return arg_massDiff_Jpsi_1 * arg_massDiff_Jpsi_1 / (arg_massErr_Jpsi_1 * arg_massErr_Jpsi_1) +
            arg_massDiff_Jpsi_2 * arg_massDiff_Jpsi_2 / (arg_massErr_Jpsi_2 * arg_massErr_Jpsi_2) +
            arg_massDiff_Ups    * arg_massDiff_Ups    / (arg_massErr_Ups    * arg_massErr_Ups   ) ;
+}
+
+/******************************************************************************
+ * [Name of function]  
+ *      makeMuonIdxSet
+ * [Description]
+ *      Construct a muon index set as ordered vector from the muon indices.
+ * [Parameters]
+ *      unsigned int arg_MuonIdx1, arg_MuonIdx2, arg_MuonIdx3, 
+ *                   arg_MuonIdx4, arg_MuonIdx5, arg_MuonIdx6
+ *          - The muon indices involved.
+ * [Return value]
+ *      (muIdxSet_t)
+ *          - The muon index set. (as a shared pointer)
+ * [Note]
+ *      To be used in resolving "multi-candidate" events.
+******************************************************************************/
+muIdxSet_t MultiLepPAT::makeMuonIdxSet(unsigned int arg_MuonIdx1, unsigned int arg_MuonIdx2,
+                                       unsigned int arg_MuonIdx3, unsigned int arg_MuonIdx4,
+                                       unsigned int arg_MuonIdx5, unsigned int arg_MuonIdx6 ){
+    muIdxSet_t tmpSet(new std::vector<unsigned int>);
+    tmpSet->push_back(arg_MuonIdx1);
+    tmpSet->push_back(arg_MuonIdx2);
+    tmpSet->push_back(arg_MuonIdx3);
+    tmpSet->push_back(arg_MuonIdx4);
+    tmpSet->push_back(arg_MuonIdx5);
+    tmpSet->push_back(arg_MuonIdx6);
+    std::sort(tmpSet->begin(), tmpSet->end());
+    return tmpSet;
+}
+
+/******************************************************************************
+ * [Name of function]  
+ *      makeMuonIdxSet
+ * [Description]
+ *      Construct a muon index set as ordered vector from the muon indices.
+ * [Parameters]
+ *      const muList_t& arg_MuonPair1, arg_MuonPair2, arg_MuonPair3
+ *          - The muon pairs involved.
+ * [Return value]
+ *      (muIdxSet_t)
+ *          - The muon index set. (as a shared pointer)
+ * [Note]
+ *      To be used in resolving "multi-candidate" events.
+ *      Require input muon pairs to be sorted in ascending order.
+******************************************************************************/
+
+muIdxSet_t MultiLepPAT::makeMuonIdxSet(const muList_t& arg_MuonPair1,
+                                       const muList_t& arg_MuonPair2,
+                                       const muList_t& arg_MuonPair3 ){
+    // Temporary storage for the muon index sets.
+    muIdxSet_t tmpSet12( new std::vector<unsigned int>);
+    muIdxSet_t tmpSet123(new std::vector<unsigned int>);
+    // Use std::merge to combine the muon index sets.
+    std::merge(arg_MuonPair1.second.begin(), arg_MuonPair1.second.end(),
+               arg_MuonPair2.second.begin(), arg_MuonPair2.second.end(),
+               std::back_inserter(*tmpSet12));
+    std::merge(arg_MuonPair3.second.begin(), arg_MuonPair3.second.end(),
+                          tmpSet12->begin(),            tmpSet12->end(),
+               std::back_inserter(*tmpSet123));
+    return tmpSet123;
+}
+
+/******************************************************************************
+ * [Name of function]  
+ *      isOverlapSet
+ * [Description]
+ *      Compare two muon index sets for overlap.
+ * [Parameters]
+ *      const muIdxSet_t& arg_MuonIdxList1, arg_MuonIdxList2
+ *          - The muon index sets to be compared.
+ * [Return value]
+ *      (bool)
+ *          - True if the two muon index sets overlap.
+ * [Note]
+ *      To be used in resolving "multi-candidate" events.
+ *      Uses a "two-pointer" method. Guaranteed O(n) complexity.
+******************************************************************************/
+bool MultiLepPAT::isOverlapSet(const muIdxSet_t& arg_MuonIdxList1, 
+                               const muIdxSet_t& arg_MuonIdxList2 ){
+    auto iter1 = arg_MuonIdxList1->begin();
+    auto iter2 = arg_MuonIdxList2->begin();
+    // Compare the two sets with a "two-pointer" method.
+    while(iter1 != arg_MuonIdxList1->end() && iter2 != arg_MuonIdxList2->end()){
+        if(*iter1 == *iter2){
+            return true;
+        }
+        else if(*iter1 < *iter2){
+            iter1++;
+        }
+        else{
+            iter2++;
+        }
+    }
+    return false;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
