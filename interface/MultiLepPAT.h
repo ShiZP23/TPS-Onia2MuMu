@@ -197,7 +197,7 @@ private:
                                      double arg_massDiff_Ups,    double arg_massErr_Ups   );
 
     // Ordered vector of muon indices representing a "combination" of muons.
-    using muIdxSet_t = std::shared_ptr< vector<unsigned int> >;
+    using muIdxSet_t = std::shared_ptr< unordered_set<unsigned int> >;
     // Make muon index list from 6 muons.
     virtual static muIdxSet_t makeMuonIdxSet(unsigned int arg_MuonIdx1, unsigned int arg_MuonIdx2,
                                              unsigned int arg_MuonIdx3, unsigned int arg_MuonIdx4,
@@ -207,8 +207,8 @@ private:
                                              const muList_t& arg_MuonPair2, 
                                              const muList_t& arg_MuonPair3 );
     // Check if overlap.
-    virtual static bool isOverlapSet(const muIdxSet_t& arg_MuonIdxList1, 
-                                     const muIdxSet_t& arg_MuonIdxList2 );
+    virtual static bool isOverlapSet(const muIdxSet_t& arg_MuonIdxSet1, 
+                                     const muIdxSet_t& arg_MuonIdxSet2 );
                         
     
     // Member data

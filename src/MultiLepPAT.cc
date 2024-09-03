@@ -32,9 +32,6 @@
 ******************************************************************************/
 
 // system include files
-#include <algorithm>
-#include <memory>
-#include <utility>
 #include "TLorentzVector.h"
 // user include files
 #include "../interface/MultiLepPAT.h"
@@ -100,12 +97,15 @@
 #include "TTree.h"
 #include "TVector3.h"
 
+#include <algorithm>
+#include <memory>
 #include <vector>
 #include <utility>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 
 #include "DataFormats/MuonReco/interface/MuonSelectors.h"
 
@@ -1654,14 +1654,13 @@ double MultiLepPAT::fitResEval(double arg_massDiff_Jpsi_1, double arg_massErr_Jp
 muIdxSet_t MultiLepPAT::makeMuonIdxSet(unsigned int arg_MuonIdx1, unsigned int arg_MuonIdx2,
                                        unsigned int arg_MuonIdx3, unsigned int arg_MuonIdx4,
                                        unsigned int arg_MuonIdx5, unsigned int arg_MuonIdx6 ){
-    muIdxSet_t tmpSet(new std::vector<unsigned int>);
-    tmpSet->push_back(arg_MuonIdx1);
-    tmpSet->push_back(arg_MuonIdx2);
-    tmpSet->push_back(arg_MuonIdx3);
-    tmpSet->push_back(arg_MuonIdx4);
-    tmpSet->push_back(arg_MuonIdx5);
-    tmpSet->push_back(arg_MuonIdx6);
-    std::sort(tmpSet->begin(), tmpSet->end());
+    muIdxSet_t tmpSet(new std::unordered_set<unsigned int>);
+    tmpSet->insert(arg_MuonIdx1);
+    tmpSet->insert(arg_MuonIdx2);
+    tmpSet->insert(arg_MuonIdx3);
+    tmpSet->insert(arg_MuonIdx4);
+    tmpSet->insert(arg_MuonIdx5);
+    tmpSet->insert(arg_MuonIdx6);
     return tmpSet;
 }
 
@@ -1685,16 +1684,12 @@ muIdxSet_t MultiLepPAT::makeMuonIdxSet(const muList_t& arg_MuonPair1,
                                        const muList_t& arg_MuonPair2,
                                        const muList_t& arg_MuonPair3 ){
     // Temporary storage for the muon index sets.
-    muIdxSet_t tmpSet12( new std::vector<unsigned int>);
-    muIdxSet_t tmpSet123(new std::vector<unsigned int>);
-    // Use std::merge to combine the muon index sets.
-    std::merge(arg_MuonPair1.second.begin(), arg_MuonPair1.second.end(),
-               arg_MuonPair2.second.begin(), arg_MuonPair2.second.end(),
-               std::back_inserter(*tmpSet12));
-    std::merge(arg_MuonPair3.second.begin(), arg_MuonPair3.second.end(),
-                          tmpSet12->begin(),            tmpSet12->end(),
-               std::back_inserter(*tmpSet123));
-    return tmpSet123;
+    muIdxSet_t tmpSet(new std::unordered_set<unsigned int>);
+    // Insert the muon indices.
+    tmpSet->insert(arg_MuonPair1.second.begin(), arg_MuonPair1.second.end());
+    tmpSet->insert(arg_MuonPair2.second.begin(), arg_MuonPair2.second.end());
+    tmpSet->insert(arg_MuonPair3.second.begin(), arg_MuonPair3.second.end());
+    return tmpSet;
 }
 
 /******************************************************************************
@@ -1703,32 +1698,23 @@ muIdxSet_t MultiLepPAT::makeMuonIdxSet(const muList_t& arg_MuonPair1,
  * [Description]
  *      Compare two muon index sets for overlap.
  * [Parameters]
- *      const muIdxSet_t& arg_MuonIdxList1, arg_MuonIdxList2
+ *      const muIdxSet_t& arg_MuonIdxSet1, arg_MuonIdxSet2
  *          - The muon index sets to be compared.
  * [Return value]
  *      (bool)
  *          - True if the two muon index sets overlap.
  * [Note]
  *      To be used in resolving "multi-candidate" events.
- *      Uses a "two-pointer" method. Guaranteed O(n) complexity.
+ *      Uses std::any_of to check for overlap.
+ *      Code generated with the help of GPT-4o and Github Copilot.
 ******************************************************************************/
-bool MultiLepPAT::isOverlapSet(const muIdxSet_t& arg_MuonIdxList1, 
-                               const muIdxSet_t& arg_MuonIdxList2 ){
-    auto iter1 = arg_MuonIdxList1->begin();
-    auto iter2 = arg_MuonIdxList2->begin();
-    // Compare the two sets with a "two-pointer" method.
-    while(iter1 != arg_MuonIdxList1->end() && iter2 != arg_MuonIdxList2->end()){
-        if(*iter1 == *iter2){
-            return true;
-        }
-        else if(*iter1 < *iter2){
-            iter1++;
-        }
-        else{
-            iter2++;
-        }
-    }
-    return false;
+bool MultiLepPAT::isOverlapSet(const muIdxSet_t& arg_MuonIdxSet1, 
+                               const muIdxSet_t& arg_MuonIdxSet2 ){
+    return std::any_of(  arg_MuonIdxSet1->begin(), 
+                         arg_MuonIdxSet1->end(),
+                       [&arg_MuonIdxSet2](const unsigned int& arg_MuonIdx){
+                           return arg_MuonIdxSet2->find(arg_MuonIdx) != arg_MuonIdxSet2->end();
+                       });
 }
 
 // ------------ method called once each job just before starting event loop  ------------
