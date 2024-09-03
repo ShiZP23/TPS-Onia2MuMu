@@ -119,17 +119,6 @@ class MultiLepPAT : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
     explicit MultiLepPAT(const ParameterSet&);
     ~MultiLepPAT();
-
-    /***
-     * [Class]
-     *    MuPairInfo
-    */
-    struct MuPairInfo {
-        std::unique_ptr<pat::Muon> muPtr1, muPtr2;
-        RefCountedKinematicParticle parent;
-        RefCountedKinematicVertex   vertex;
-        double_t vtxChi2, vtxDOF, vtxProb;
-    }
   
 private:
     // Framework methods
@@ -374,7 +363,7 @@ private:
                      *Pri_ctau,  *Pri_ctauErr, *Pri_Chi2, *Pri_ndof, *Pri_VtxProb,
                      *Pri_px,    *Pri_py,    Pri_pz, 
                      *Pri_phi,   *Pri_eta,   Pri_pt;  
-                     
+
     //doMC
     vector<float> 
     *MC_X_px,

@@ -1249,6 +1249,8 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
     Pri_eta->clear();
     Pri_pt->clear();
 
+    muIdxSet->clear();
+
     Jpsi_1_mass->clear();
     Jpsi_1_massErr->clear();
     Jpsi_1_massDiff->clear();
@@ -1830,6 +1832,8 @@ void MultiLepPAT::beginJob()
 	X_One_Tree_->Branch("muUpsVrtxMatch", &muUpsVrtxMatch);
 	X_One_Tree_->Branch("muL3TriggerMatch", &muL3TriggerMatch);
 
+    X_One_Tree_->Branch("muIdxSet", &muIdxSet);
+
     X_One_Tree_->Branch("Jpsi_1_mass", &Jpsi_1_mass);
     X_One_Tree_->Branch("Jpsi_1_massErr", &Jpsi_1_massErr);
     X_One_Tree_->Branch("Jpsi_1_massDiff", &Jpsi_1_massDiff);
@@ -1844,6 +1848,8 @@ void MultiLepPAT::beginJob()
     X_One_Tree_->Branch("Jpsi_1_phi", &Jpsi_1_phi);
     X_One_Tree_->Branch("Jpsi_1_eta", &Jpsi_1_eta);
     X_One_Tree_->Branch("Jpsi_1_pt", &Jpsi_1_pt);
+    X_One_Tree_->Branch("Jpsi_1_mu_1_Idx", &Jpsi_1_mu_1_Idx);
+    X_One_Tree_->Branch("Jpsi_1_mu_2_Idx", &Jpsi_1_mu_2_Idx);
 
     X_One_Tree_->Branch("Jpsi_2_mass", &Jpsi_2_mass);
     X_One_Tree_->Branch("Jpsi_2_massErr", &Jpsi_2_massErr);
@@ -1859,6 +1865,8 @@ void MultiLepPAT::beginJob()
     X_One_Tree_->Branch("Jpsi_2_phi", &Jpsi_2_phi);
     X_One_Tree_->Branch("Jpsi_2_eta", &Jpsi_2_eta);
     X_One_Tree_->Branch("Jpsi_2_pt", &Jpsi_2_pt);
+    X_One_Tree_->Branch("Jpsi_2_mu_1_Idx", &Jpsi_2_mu_1_Idx);
+    X_One_Tree_->Branch("Jpsi_2_mu_2_Idx", &Jpsi_2_mu_2_Idx);
 
     X_One_Tree_->Branch("Ups_mass", &Ups_mass);
     X_One_Tree_->Branch("Ups_massErr", &Ups_massErr);
@@ -1872,6 +1880,8 @@ void MultiLepPAT::beginJob()
     X_One_Tree_->Branch("Ups_phi", &Ups_phi);
     X_One_Tree_->Branch("Ups_eta", &Ups_eta);
     X_One_Tree_->Branch("Ups_pt", &Ups_pt);
+    X_One_Tree_->Branch("Ups_mu_1_Idx", &Ups_mu_1_Idx);
+    X_One_Tree_->Branch("Ups_mu_2_Idx", &Ups_mu_2_Idx);
 
     X_One_Tree_->Branch("Pri_mass", &Pri_mass);
     X_One_Tree_->Branch("Pri_massErr", &Pri_massErr);
@@ -1969,7 +1979,8 @@ double MultiLepPAT::GetcTau(RefCountedKinematicVertex&   decayVrtx,
     pvtx.SetXYZ(bs.position().x(), bs.position().y(), 0);
     VertexDistanceXY vdistXY;
     TVector3 pperp(kinePart->currentState().globalMomentum().x(),
-    	   kinePart->currentState().globalMomentum().y(), 0);
+    	           kinePart->currentState().globalMomentum().y(), 
+                   0                                              );
 
     TVector3 vdiff = vtx - pvtx;
     double cosAlpha = vdiff.Dot(pperp) / (vdiff.Perp() * pperp.Perp());
