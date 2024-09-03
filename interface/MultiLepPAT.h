@@ -209,7 +209,10 @@ private:
     // Check if overlap.
     virtual static bool isOverlapSet(const muIdxSet_t& arg_MuonIdxSet1, 
                                      const muIdxSet_t& arg_MuonIdxSet2 );
-                        
+
+    // Check if encountered a "same set"
+    virtual static bool isSameSet(const muIdxSet_t& arg_MuonIdxSet1, 
+                                  const muIdxSet_t& arg_MuonIdxSet2 );
     
     // Member data
 

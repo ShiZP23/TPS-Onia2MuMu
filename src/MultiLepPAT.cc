@@ -1716,6 +1716,25 @@ bool MultiLepPAT::isOverlapSet(const muIdxSet_t& arg_MuonIdxSet1,
                            return arg_MuonIdxSet2->find(arg_MuonIdx) != arg_MuonIdxSet2->end();
                        });
 }
+/******************************************************************************
+ * [Name of function]  
+ *      isSameSet
+ * [Description]
+ *      Check if two muon index sets overlap.
+ * [Parameters]
+ *      const muIdxSet_t& arg_MuonIdxSet1, arg_MuonIdxSet2
+ *          - The muon index sets to be compared.
+ * [Return value]
+ *      (bool)
+ *          - True if the two muon index sets overlap.
+ * [Note]
+ *      Uses operator== to compare the two sets.
+******************************************************************************/
+
+bool MultiLepPAT::isSameSet(const muIdxSet_t& arg_MuonIdxSet1, 
+                            const muIdxSet_t& arg_MuonIdxSet2 ){
+    return (*arg_MuonIdxSet1 == *arg_MuonIdxSet2);
+}
 
 // ------------ method called once each job just before starting event loop  ------------
 void MultiLepPAT::beginRun(edm::Run const &iRun, edm::EventSetup const &iSetup)
