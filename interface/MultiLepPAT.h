@@ -119,6 +119,16 @@ class MultiLepPAT : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
     explicit MultiLepPAT(const ParameterSet&);
     ~MultiLepPAT();
+
+    // Note: always ensures that in muList_t, the first muon is the one with the smaller index.
+    using muon_t   = RefCountedKinematicParticle;
+    using muList_t = std::pair< vector<muon_t>, vector<uint> >;
+
+    // Using enumeration to define trigger types [Annotation by Eric Wang, 20240626] 
+    static constexpr unsigned int trigCount = 50;
+    static constexpr unsigned int trigTypeCount = 3;
+
+    enum class trigType{JPSI, UPS, PHI};
   
 private:
     // Framework methods
@@ -128,21 +138,21 @@ private:
     virtual void endJob() ;
 
     // Essential methods (ctau)
-    virtual static double GetcTau(RefCountedKinematicVertex&   decayVrtx, 
-                                  RefCountedKinematicParticle& kinePart, 
-                                  Vertex&                      bs );
-    virtual static double GetcTauErr(RefCountedKinematicVertex& decayVrtx, 
-                                     RefCountedKinematicParticle& kinePart, 
-                                     Vertex&                      bs );
+    static double GetcTau(RefCountedKinematicVertex&   decayVrtx, 
+                          RefCountedKinematicParticle& kinePart, 
+                          Vertex&                      bs );
+    static double GetcTauErr(RefCountedKinematicVertex& decayVrtx, 
+                             RefCountedKinematicParticle& kinePart, 
+                             Vertex&                      bs );
     
     // Essential methods (deltaR)
     static double deltaR(double eta1, double phi1, double eta2, double phi2);
     
     // Essential methods (pT, eta, phi all in one)
-    virtual static void getDynamics(RefCountedKinematicParticle& arg_Part,
-                                    double& res_pt,   double& res_eta, double& res_phi);
-    virtual static void getDynamics(double  arg_mass, double  arg_px,  double  arg_py, double arg_pz,
-                                    double& res_pt,   double& res_eta, double& res_phi);
+    static void getDynamics(const RefCountedKinematicParticle& arg_Part,
+                            double& res_pt,   double& res_eta, double& res_phi);
+    static void getDynamics(double  arg_mass, double  arg_px,  double  arg_py, double arg_pz,
+                            double& res_pt,   double& res_eta, double& res_phi);
 
 
  
@@ -166,35 +176,39 @@ private:
     }
 
     // Some useful methods for maintenance, readability and elegance    
-    virtual static void tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
-                                         KinematicParticleFactoryFromTransientTrack& arg_MuFactory,
-                                         const MagneticField&                        arg_bField,
-                                         const TrackRef arg_Trk1,     const TrackRef arg_Trk2       );
+    static void tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
+                                 KinematicParticleFactoryFromTransientTrack& arg_MuFactory,
+                                 const MagneticField&                        arg_bField,
+                                 const TrackRef arg_Trk1,     const TrackRef arg_Trk2       );
 
-    virtual static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults);
-    virtual static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults,
-                                       const string&                               arg_Message);
-    virtual static bool particlesToVtx(RefCountedKinematicTree&                    arg_VertexFitTree
-                                       const vector<RefCountedKinematicParticle>&  arg_Muons,
-                                       const string&                               arg_Message);
-    
-    virtual static bool extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
-                                      RefCountedKinematicParticle& res_Part,
-                                      RefCountedKinematicVertex&   res_Vtx,
-                                      KinematicParameters&         res_Param,
-                                      double&                      res_massErr);
+    static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults);
+    static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults,
+                               const string&                               arg_Message);
+    static bool particlesToVtx(RefCountedKinematicTree&                    arg_VertexFitTree,
+                               const vector<RefCountedKinematicParticle>&  arg_Muons,
+                               const string&                               arg_Message);
+
+    static bool extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
+                              RefCountedKinematicParticle& res_Part,
+                              RefCountedKinematicVertex&   res_Vtx,
+                              KinematicParameters&         res_Param,
+                              double&                      res_MassErr);
+    static bool extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
+                              RefCountedKinematicParticle& res_Part,
+                              RefCountedKinematicVertex&   res_Vtx,
+                              double&                      res_MassErr);
+    static bool extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
+                              RefCountedKinematicVertex&   res_Vtx,
+                              double&                      res_VtxProb);
 
     // To avoid overlapping muon pairs
-    // Note: always ensures that in muList_t, the first muon is the one with the smaller index.
-    using muon_t   = RefCountedKinematicParticle;
-    using muList_t = std::pair< vector<muon_t>, vector<uint> >;
-    virtual static bool isOverlapPair(const muList_t& arg_MuonPair1, 
-                                      const muList_t& arg_MuonPair2 );
+    static bool isOverlapPair(const muList_t& arg_MuonPair1, 
+                              const muList_t& arg_MuonPair2 );
 
     // Deal with "multi-candidate" issue
-    virtual static double fitResEval(double arg_massDiff_Jpsi_1, double arg_massErr_Jpsi_1,
-                                     double arg_massDiff_Jpsi_2, double arg_massErr_Jpsi_2,
-                                     double arg_massDiff_Ups,    double arg_massErr_Ups   );
+    static double fitResEval(double arg_massDiff_Jpsi_1, double arg_massErr_Jpsi_1,
+                             double arg_massDiff_Jpsi_2, double arg_massErr_Jpsi_2,
+                             double arg_massDiff_Ups,    double arg_massErr_Ups   );
 
     
     // Member data
@@ -233,22 +247,16 @@ private:
     bool resolveAmbiguity_; 
     bool addXlessPrimaryVertex_;
 
-    // Using enumeration to define trigger types [Annotation by Eric Wang, 20240626] 
-    const unsigned int trigCount = 50;
-    const unsigned int trigTypeCount = 3;
-
-    enum class trigType{JPSI, UPS, PHI};
-
     // Identifying triggers and filters with their name [Annotation by Eric Wang, 20240626]
-    vector<string>      TriggersFor_[trigTypeCount];
-    vector<string>      FiltersFor_[trigTypeCount];
-    
-    int matchTrigRes_Type[trigCount][trigTypeCount];
-    int matchTrigRes_All[trigCount]
+    vector<string>      TriggersForJpsi_;
+    vector<string>      FiltersForJpsi_;
+    vector<string>      TriggersForUpsilon_;
+    vector<string>      FiltersForUpsilon_;
+    int JpsiMatchTrig[50], UpsilonMatchTrig[50];
 
 
     virtual void getAllTriggers(   const edm::Handle<edm::TriggerResults>&     HLTresult);
-    virtual bool muonMatchTrigType(const edm::View<pat::Muon>::const_iterator& muonIter
+    virtual bool muonMatchTrigType(const edm::View<pat::Muon>::const_iterator& muonIter,
                                    const vector<string>& trigNames, 
                                          trigType        type                          );
     
@@ -259,14 +267,14 @@ private:
     double Chi_Track_;
 
     // PDG 2023
-	constexpr double myJpsiMass = 3.0969,   myJpsiMasserr = 0.00004;
-	constexpr double myUpsMass  = 9.4603,   myUpsMasserr  = 0.0003;
-	constexpr double myPhiMass  = 1.019455, myPhiMasserr    = 0.000020;
-	constexpr double myMuMass = 0.1056583745;
-	constexpr double myMuMasserr = myMuMass * 1e-6;
-	constexpr double myPimass = 0.13957039;
+	static constexpr double myJpsiMass = 3.0969,   myJpsiMassErr = 0.00004;
+	static constexpr double myUpsMass  = 9.4603,   myUpsMassErr  = 0.0003;
+	static constexpr double myPhiMass  = 1.019455, myPhiMassErr    = 0.000020;
+	static constexpr double myMuMass = 0.1056583745;
+	static constexpr double myMuMassErr = 0.0000000023; // From PDG 2024
+	static constexpr double myPiMass = 0.13957039;
 	// try
-	constexpr double myPimasserr = myPimass * 1e-6;
+	static constexpr double myPiMassErr = 0.00000018; // From PDG 2024
 
     // Constructing TTree object [Annotation by Eric Wang, 20240626]
     
@@ -344,8 +352,8 @@ private:
     // Primary vertex reconstructied from Jpsi and Upsilon.              
     vector<float>    *Pri_mass,  *Pri_massErr,
                      *Pri_ctau,  *Pri_ctauErr, *Pri_Chi2, *Pri_ndof, *Pri_VtxProb,
-                     *Pri_px,    *Pri_py,    Pri_pz, 
-                     *Pri_phi,   *Pri_eta,   Pri_pt;  
+                     *Pri_px,    *Pri_py,    *Pri_pz, 
+                     *Pri_phi,   *Pri_eta,   *Pri_pt;  
 
     //doMC
     vector<float> 
@@ -417,13 +425,13 @@ private:
     *Match_pi2py,
     *Match_pi2pz; 
 
-    vector<float> 
-        *Match_Jpsi_1_mu1px, *Match_Jpsi_1_mu1py, *Match_Jpsi1_mu1pz,
-        *Match_Jpsi_1_mu2px, *Match_Jpsi_1_mu2py, *Match_Jpsi1_mu2pz,
-        *Match_Jpsi_2_mu1px, *Match_Jpsi_2_mu1py, *Match_Jpsi2_mu1pz,
-        *Match_Jpsi_2_mu2px, *Match_Jpsi_2_mu2py, *Match_Jpsi2_mu2pz,
-        *Match_Ups_mu1px,    *Match_Ups_mu1py,    *Match_Ups_mu1pz,
-        *Match_Ups_mu2px,    *Match_Ups_mu2py,    *Match_Ups_mu2pz;
+    // vector<float> 
+    //     *Match_Jpsi_1_mu1px, *Match_Jpsi_1_mu1py, *Match_Jpsi1_mu1pz,
+    //     *Match_Jpsi_1_mu2px, *Match_Jpsi_1_mu2py, *Match_Jpsi1_mu2pz,
+    //     *Match_Jpsi_2_mu1px, *Match_Jpsi_2_mu1py, *Match_Jpsi2_mu1pz,
+    //     *Match_Jpsi_2_mu2px, *Match_Jpsi_2_mu2py, *Match_Jpsi2_mu2pz,
+    //     *Match_Ups_mu1px,    *Match_Ups_mu1py,    *Match_Ups_mu1pz,
+    //     *Match_Ups_mu2px,    *Match_Ups_mu2py,    *Match_Ups_mu2pz;
 
 
   
