@@ -14,6 +14,9 @@
  *  [Note]
  *      20240626 [Eric Wang]
  *          Upsilon is abbreviated as "Ups"
+ *      20240705 [Eric Wang]
+ *          Adding new member functions for the following purposes:
+ *              Judging if the event 
 ******************************************************************************/
 
 
@@ -108,21 +111,49 @@
 //
 
 using std::vector;
+using std::string;
 using namespace edm;
 using namespace reco;
-using namespace std;
 
 class MultiLepPAT : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
     explicit MultiLepPAT(const ParameterSet&);
     ~MultiLepPAT();
 
+    // Note: always ensures that in muList_t, the first muon is the one with the smaller index.
+    using muon_t   = RefCountedKinematicParticle;
+    using muList_t = std::pair< vector<muon_t>, vector<uint> >;
+
+    // Using enumeration to define trigger types [Annotation by Eric Wang, 20240626] 
+    static constexpr unsigned int trigCount = 50;
+    static constexpr unsigned int trigTypeCount = 3;
+
+    enum class trigType{JPSI, UPS, PHI};
   
 private:
+    // Framework methods
     virtual void beginJob() ;
     virtual void beginRun(Run const & iRun, EventSetup const& iSetup);
     virtual void analyze(const Event&, const EventSetup&);
     virtual void endJob() ;
+
+    // Essential methods (ctau)
+    static double GetcTau(RefCountedKinematicVertex&   decayVrtx, 
+                          RefCountedKinematicParticle& kinePart, 
+                          Vertex&                      bs );
+    static double GetcTauErr(RefCountedKinematicVertex& decayVrtx, 
+                             RefCountedKinematicParticle& kinePart, 
+                             Vertex&                      bs );
+    
+    // Essential methods (deltaR)
+    static double deltaR(double eta1, double phi1, double eta2, double phi2);
+    
+    // Essential methods (pT, eta, phi all in one)
+    static void getDynamics(const RefCountedKinematicParticle& arg_Part,
+                            double& res_pt,   double& res_eta, double& res_phi);
+    static void getDynamics(double  arg_mass, double  arg_px,  double  arg_py, double arg_pz,
+                            double& res_pt,   double& res_eta, double& res_phi);
+
 
  
     //add token here
@@ -144,52 +175,41 @@ private:
         return -1;
     }
 
-    //get ctau from beamspot
-    virtual double GetcTau( RefCountedKinematicVertex&   decayVrtx, 
-                            RefCountedKinematicParticle& kinePart, 
-                            Vertex&                             bs ){	
-        TVector3 vtx;
-        TVector3 pvtx;
-        vtx.SetXYZ((*decayVrtx).position().x(), (*decayVrtx).position().y(), 0);
-        pvtx.SetXYZ(bs.position().x(), bs.position().y(), 0);
-        VertexDistanceXY vdistXY;
-        TVector3 pperp(kinePart->currentState().globalMomentum().x(),
-	    	   kinePart->currentState().globalMomentum().y(), 0);
+    // Some useful methods for maintenance, readability and elegance    
+    static void tracksToMuonPair(vector<RefCountedKinematicParticle>&        arg_MuonResults,
+                                 KinematicParticleFactoryFromTransientTrack& arg_MuFactory,
+                                 const MagneticField&                        arg_bField,
+                                 const TrackRef arg_Trk1,     const TrackRef arg_Trk2       );
 
-        TVector3 vdiff = vtx - pvtx;
-        double cosAlpha = vdiff.Dot(pperp) / (vdiff.Perp() * pperp.Perp());
-        Measurement1D distXY = vdistXY.distance(Vertex(*decayVrtx), Vertex(bs));
-        double ctauPV = distXY.value() * cosAlpha * kinePart->currentState().mass() / pperp.Perp();
-        return ctauPV;    
-    }
+    static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults);
+    static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults,
+                               const string&                               arg_Message);
+    static bool particlesToVtx(RefCountedKinematicTree&                    arg_VertexFitTree,
+                               const vector<RefCountedKinematicParticle>&  arg_Muons,
+                               const string&                               arg_Message);
 
-    virtual double GetcTauErr(  RefCountedKinematicVertex& decayVrtx, 
-                                RefCountedKinematicParticle& kinePart, 
-                                Vertex& bs                              ){       
-        TVector3 pperp(kinePart->currentState().globalMomentum().x(),
-		               kinePart->currentState().globalMomentum().y(), 
-                       0                                              );
-        AlgebraicVector vpperp(3);
-        vpperp[0] = pperp.x();
-        vpperp[1] = pperp.y();
-        vpperp[2] = 0.;
+    static bool extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
+                              RefCountedKinematicParticle& res_Part,
+                              RefCountedKinematicVertex&   res_Vtx,
+                              KinematicParameters&         res_Param,
+                              double&                      res_MassErr);
+    static bool extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
+                              RefCountedKinematicParticle& res_Part,
+                              RefCountedKinematicVertex&   res_Vtx,
+                              double&                      res_MassErr);
+    static bool extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
+                              RefCountedKinematicVertex&   res_Vtx,
+                              double&                      res_VtxProb);
 
-        GlobalError v1e = (Vertex(*decayVrtx)).error();
-        GlobalError v2e = bs.error();
-        AlgebraicSymMatrix vXYe = asHepMatrix(v1e.matrix()) + asHepMatrix(v2e.matrix());
-        double ctauErrPV = sqrt(vXYe.similarity(vpperp)) * kinePart->currentState().mass() / (pperp.Perp2());
+    // To avoid overlapping muon pairs
+    static bool isOverlapPair(const muList_t& arg_MuonPair1, 
+                              const muList_t& arg_MuonPair2 );
 
-        return ctauErrPV;    
-    }
-  
+    // Deal with "multi-candidate" issue
+    static double fitResEval(double arg_massDiff_Jpsi_1, double arg_massErr_Jpsi_1,
+                             double arg_massDiff_Jpsi_2, double arg_massErr_Jpsi_2,
+                             double arg_massDiff_Ups,    double arg_massErr_Ups   );
 
-    double deltaR(double eta1, double phi1, double eta2, double phi2) {
-        double deta = eta1 - eta2;
-        double dphi = phi1 - phi2;
-        while (dphi >   M_PI) dphi -= 2*M_PI;
-        while (dphi <= -M_PI) dphi += 2*M_PI;
-        return sqrt(deta*deta + dphi*dphi);
-    }
     
     // Member data
 
@@ -226,18 +246,35 @@ private:
     
     bool resolveAmbiguity_; 
     bool addXlessPrimaryVertex_;
+
+    // Identifying triggers and filters with their name [Annotation by Eric Wang, 20240626]
     vector<string>      TriggersForJpsi_;
     vector<string>      FiltersForJpsi_;
     vector<string>      TriggersForUpsilon_;
     vector<string>      FiltersForUpsilon_;
-    
     int JpsiMatchTrig[50], UpsilonMatchTrig[50];
+
+
+    virtual void getAllTriggers(   const edm::Handle<edm::TriggerResults>&     HLTresult);
+    virtual bool muonMatchTrigType(const edm::View<pat::Muon>::const_iterator& muonIter,
+                                   const vector<string>& trigNames, 
+                                         trigType        type                          );
     
     vector<string>      TriggersForMatching_;
     vector<string>      FiltersForMatching_;
     int  MatchingTriggerResult[50];
     bool Debug_;
     double Chi_Track_;
+
+    // PDG 2023
+	static constexpr double myJpsiMass = 3.0969,   myJpsiMassErr = 0.00004;
+	static constexpr double myUpsMass  = 9.4603,   myUpsMassErr  = 0.0003;
+	static constexpr double myPhiMass  = 1.019455, myPhiMassErr    = 0.000020;
+	static constexpr double myMuMass = 0.1056583745;
+	static constexpr double myMuMassErr = 0.0000000023; // From PDG 2024
+	static constexpr double myPiMass = 0.13957039;
+	// try
+	static constexpr double myPiMassErr = 0.00000018; // From PDG 2024
 
     // Constructing TTree object [Annotation by Eric Wang, 20240626]
     
@@ -290,51 +327,112 @@ private:
     vector<float>  *mupulldXdZ_pos_ArbST, *mupulldYdZ_pos_ArbST;
     vector<float>  *mupulldXdZ_pos_noArb_any, *mupulldYdZ_pos_noArb_any;
 
+    // Muons from Jpsi and Upsilon.
+    vector<float> *Jpsi_1_mu_1_Idx, *Jpsi_1_mu_2_Idx, 
+                  *Jpsi_2_mu_1_Idx, *Jpsi_2_mu_2_Idx,
+                     *Ups_mu_1_Idx,    *Ups_mu_2_Idx;
 
-    // Index of selected muons in one event [Added by Eric Wang, 20240626]
-    // Reference: code from Wang Xining
-    vector<float> *Jpsi_mu1_Idx,    *Jpsi_mu2_Idx;
-    vector<float> *Ups_mu1_Idx,     *Ups_mu2_Idx;
+    // Reconstructed Jpsi and Upsilon.
+    // Note: Used "vector<T>* a, b" instead of "vector<T> *a, *b"
+    vector<float> *Jpsi_1_mass, *Jpsi_1_massErr, *Jpsi_1_massDiff,
+                  *Jpsi_2_mass, *Jpsi_2_massErr, *Jpsi_2_massDiff,
+                     *Ups_mass,    *Ups_massErr,    *Ups_massDiff ;
+               
+    vector<float> *Jpsi_1_ctau, *Jpsi_1_ctauErr, *Jpsi_1_Chi2, *Jpsi_1_ndof, *Jpsi_1_VtxProb,
+                  *Jpsi_2_ctau, *Jpsi_2_ctauErr, *Jpsi_2_Chi2, *Jpsi_2_ndof, *Jpsi_2_VtxProb,
+                                                    *Ups_Chi2,    *Ups_ndof,    *Ups_VtxProb;
+                  
+    vector<float> *Jpsi_1_phi, *Jpsi_1_eta, *Jpsi_1_pt,
+                  *Jpsi_2_phi, *Jpsi_2_eta, *Jpsi_2_pt,
+                     *Ups_phi,    *Ups_eta,    *Ups_pt;
+               
+    vector<float> *Jpsi_1_px, *Jpsi_1_py, *Jpsi_1_pz,
+                  *Jpsi_2_px, *Jpsi_2_py, *Jpsi_2_pz,
+                     *Ups_px,    *Ups_py,    *Ups_pz;
+    // Primary vertex reconstructied from Jpsi and Upsilon.              
+    vector<float>    *Pri_mass,  *Pri_massErr,
+                     *Pri_ctau,  *Pri_ctauErr, *Pri_Chi2, *Pri_ndof, *Pri_VtxProb,
+                     *Pri_px,    *Pri_py,    *Pri_pz, 
+                     *Pri_phi,   *Pri_eta,   *Pri_pt;  
 
-    // Vertex fitting [Modified by Eric Wang, 20240626]
-    vector<float> *VtxProb,      *Chi2,           *ndof,        *VtxPt2;
-
-    // Secondary Jpsi's and Upsilon's kinematics [Modified by Eric Wang, 20240626]
-    vector<float> *Jpsi_mass,   *Jpsi_VtxProb,  *Jpsi_Chi2, *Jpsi_ndof,
-                  *Jpsi_px,     *Jpsi_py,       *Jpsi_pz,   *Jpsi_massErr;
-    vector<float> *Ups_mass,    *Ups_VtxProb,   *Ups_Chi2,  *Ups_ndof,
-                  *Ups_px,      *Ups_py,        *Ups_pz,    *Ups_massErr;
-
-    // Secondary Jpsi's and Upsilon's kinematics fitted under mass constraints 
-    //      [Modified by Eric Wang, 20240626]
-    vector<float> *CS_Jpsi_mass,    *CS_Jpsi_VtxProb,   *CS_Jpsi_Chi2,   *CS_Jpsi_ndof,
-                  *CS_Jpsi_px,      *CS_Jpsi_py,        *CS_Jpsi_pz,     *CS_Jpsi_massErr;
-    vector<float> *CS_Ups_mass,     *CS_Ups_VtxProb,    *CS_Ups_Chi2,    *CS_Ups_ndof,
-                  *CS_Ups_px,       *CS_Ups_py,         *CS_Ups_pz,      *CS_Ups_massErr;
-
-    // MC results [Modified by Eric Wang, 20240626]
-    // Kinematics
+    //doMC
     vector<float> 
-        *MC_G1_Jpsi1_px, *MC_G1_Jpsi1_py, *MC_G1_Jpsi1_pz, *MC_G1_Jpsi1_mass,
-        *MC_G1_Jpsi2_px, *MC_G1_Jpsi2_py, *MC_G1_Jpsi2_pz, *MC_G1_Jpsi2_mass,
-        *MC_G1_Ups1_px,  *MC_G1_Ups1_py,  *MC_G1_Ups1_pz,  *MC_G1_Ups1_mass;
+    *MC_X_px,
+    *MC_X_py,
+    *MC_X_pz,
+    *MC_X_mass,
+    *MC_Dau_Jpsipx,
+    *MC_Dau_Jpsipy,
+    *MC_Dau_Jpsipz,
+    *MC_Dau_Jpsimass,
+    *MC_Dau_psi2spx,
+    *MC_Dau_psi2spy,
+    *MC_Dau_psi2spz,
+    *MC_Dau_psi2smass,
+    *MC_Granddau_mu1px,
+    *MC_Granddau_mu1py,
+    *MC_Granddau_mu1pz,
+    *MC_Granddau_mu2px,
+    *MC_Granddau_mu2py,
+    *MC_Granddau_mu2pz,
+    *MC_Granddau_Jpsipx,
+    *MC_Granddau_Jpsipy,
+    *MC_Granddau_Jpsipz,
+    *MC_Granddau_Jpsimass,
+    *MC_Granddau_pi1px,
+    *MC_Granddau_pi1py,
+    *MC_Granddau_pi1pz,
+    *MC_Granddau_pi2px,
+    *MC_Granddau_pi2py,
+    *MC_Granddau_pi2pz,
+    *MC_Grandgranddau_mu3px,
+    *MC_Grandgranddau_mu3py,
+    *MC_Grandgranddau_mu3pz,
+    *MC_Grandgranddau_mu4px,
+    *MC_Grandgranddau_mu4py,
+    *MC_Grandgranddau_mu4pz;
+    
+    vector<int>
+    *MC_X_chg,
+    *MC_Dau_JpsipdgId,
+    *MC_Dau_psi2spdgId,
+    *MC_Granddau_mu1pdgId,
+    *MC_Granddau_mu2pdgId,
+    *MC_Granddau_JpsipdgId,
+    *MC_Granddau_pi1pdgId,
+    *MC_Granddau_pi2pdgId,
+    *MC_Grandgranddau_mu3pdgId,
+    *MC_Grandgranddau_mu4pdgId;
+    
+    vector<float> 
+    *Match_mu1px,
+    *Match_mu1py,
+    *Match_mu1pz,
+    *Match_mu2px,
+    *Match_mu2py,
+    *Match_mu2pz,
+    *Match_mu3px,
+    *Match_mu3py,
+    *Match_mu3pz,
+    *Match_mu4px,
+    *Match_mu4py,
+    *Match_mu4pz,
+    
+    *Match_pi1px,
+    *Match_pi1py,
+    *Match_pi1pz,
+    *Match_pi2px,
+    *Match_pi2py,
+    *Match_pi2pz; 
 
-    // For Muon pairs, always keep the order of mu1 = mu+ and mu2 = mu-; 
-    vector<float> 
-        *MC_G2_Mu1_px, *MC_G2_Mu1_py, *MC_G2_Mu1_pz, *MC_G2_Mu1_mass,
-        *MC_G2_Mu2_px, *MC_G2_Mu2_py, *MC_G2_Mu2_pz, *MC_G2_Mu2_mass ; 
+    // vector<float> 
+    //     *Match_Jpsi_1_mu1px, *Match_Jpsi_1_mu1py, *Match_Jpsi1_mu1pz,
+    //     *Match_Jpsi_1_mu2px, *Match_Jpsi_1_mu2py, *Match_Jpsi1_mu2pz,
+    //     *Match_Jpsi_2_mu1px, *Match_Jpsi_2_mu1py, *Match_Jpsi2_mu1pz,
+    //     *Match_Jpsi_2_mu2px, *Match_Jpsi_2_mu2py, *Match_Jpsi2_mu2pz,
+    //     *Match_Ups_mu1px,    *Match_Ups_mu1py,    *Match_Ups_mu1pz,
+    //     *Match_Ups_mu2px,    *Match_Ups_mu2py,    *Match_Ups_mu2pz;
 
-    // Particle ID
-
-    vector<float> 
-        *MC_G1_Jpsi_PDG_ID,
-        *MC_G1_Ups_PDG_ID;
-    vector<float> 
-        *MC_G2_Mu1_PDG_ID, 
-        *MC_G2_Mu2_PDG_ID ; 
-    vector<float> 
-        *Match_mu1px, *Match_mu1py, *Match_mu1pz,
-        *Match_mu2px, *Match_mu2py, *Match_mu2pz ; 
 
   
 };

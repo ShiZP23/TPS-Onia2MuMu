@@ -293,32 +293,32 @@ FiltersForUpsilon = cms.untracked.vstring("hltVertexmumuFilterUpsilonMuon53p52Op
         Chi2NDF_Track =  cms.untracked.double(15.0)
 )
 
-#process.mkcands = cms.EDAnalyzer('Bfinder',
-#	Bchannel 		= cms.vint32(
-#		1,#RECONSTRUCTION: J/psi + K
-#		1,#RECONSTRUCTION: J/psi + Pi
-#		1,#RECONSTRUCTION: J/psi + Ks 
-#		1,#RECONSTRUCTION: J/psi + K* (K+, Pi-)
-#		1,#RECONSTRUCTION: J/psi + K* (K-, Pi+)
-#		1,#RECONSTRUCTION: J/psi + phi
-#		1,#RECONSTRUCTION: J/psi + pi pi <= psi', X(3872), Bs->J/psi f0
-#		1,#RECONSTRUCTION: J/psi + lambda (p+, pi-) 
-#		1,),#RECONSTRUCTION: J/psi + lambda (p-, pi+) 
-#    MuonTriggerMatchingPath = cms.vstring("HLT_Dimuon*", "HLT_DoubleMu*"),
-#	HLTLabel        = cms.InputTag('TriggerResults::HLT'),
-#    GenLabel        = cms.InputTag('genParticles'),
-#	MuonLabel       = cms.InputTag('selectedPatMuons'),         #selectedPatMuons
-#	TrackLabel      = cms.InputTag('selectedPatTrackCands'),    #selectedPat
-#    PUInfoLabel     = cms.InputTag("addPileupInfo"),
-#    BSLabel     = cms.InputTag("offlineBeamSpot"),
-#    PVLabel     = cms.InputTag("offlinePrimaryVerticesWithBS"),
-#    tkPtCut = cms.double(0.4),
-#    jpsiPtCut = cms.double(0.0),
-#    bPtCut = cms.double(0.0),
-#    RunOnMC = cms.bool(False),
-#    doTkPreCut = cms.bool(True),
-#    doMuPreCut = cms.bool(True)
-#)
+# process.mkcands = cms.EDAnalyzer('Bfinder',
+# 	Bchannel 		= cms.vint32(
+# 		1,#RECONSTRUCTION: J/psi + K
+# 		1,#RECONSTRUCTION: J/psi + Pi
+# 		1,#RECONSTRUCTION: J/psi + Ks 
+# 		1,#RECONSTRUCTION: J/psi + K* (K+, Pi-)
+# 		1,#RECONSTRUCTION: J/psi + K* (K-, Pi+)
+# 		1,#RECONSTRUCTION: J/psi + phi
+# 		1,#RECONSTRUCTION: J/psi + pi pi <= psi', X(3872), Bs->J/psi f0
+# 		1,#RECONSTRUCTION: J/psi + lambda (p+, pi-) 
+# 		1,),#RECONSTRUCTION: J/psi + lambda (p-, pi+) 
+#     MuonTriggerMatchingPath = cms.vstring("HLT_Dimuon*", "HLT_DoubleMu*"),
+# 	HLTLabel        = cms.InputTag('TriggerResults::HLT'),
+#     GenLabel        = cms.InputTag('genParticles'),
+# 	MuonLabel       = cms.InputTag('selectedPatMuons'),         #selectedPatMuons
+# 	TrackLabel      = cms.InputTag('selectedPatTrackCands'),    #selectedPat
+#     PUInfoLabel     = cms.InputTag("addPileupInfo"),
+#     BSLabel     = cms.InputTag("offlineBeamSpot"),
+#     PVLabel     = cms.InputTag("offlinePrimaryVerticesWithBS"),
+#     tkPtCut = cms.double(0.4),
+#     jpsiPtCut = cms.double(0.0),
+#     bPtCut = cms.double(0.0),
+#     RunOnMC = cms.bool(False),
+#     doTkPreCut = cms.bool(True),
+#     doMuPreCut = cms.bool(True)
+# )
 
 
 if HIFormat:
