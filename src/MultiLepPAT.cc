@@ -816,7 +816,9 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             }
             // Clear the transient muon pair for the next pair.
             transMuonPair.pop_back();
+            transMuPairId.pop_back()
         }
+        transMuonPair.pop_back();
         transMuonPair.pop_back();
     }
 
