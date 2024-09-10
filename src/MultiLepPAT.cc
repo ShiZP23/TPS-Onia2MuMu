@@ -737,6 +737,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
 	{
 		return;
 	}
+	std::cout << "muons more than six" << endl;
 
     // Temporary storage for the muon pair [Annotated by Eric Wang, 20240704]
     std::vector<RefCountedKinematicParticle> transMuonPair;
@@ -798,6 +799,7 @@ void MultiLepPAT::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
             if((!isJpsiMuPair) && (!isUpsMuPair)){
                 continue;
             }
+	    std::cout <<"Jpsi and Upsilon mass test passed" << endl;
             transMuonPair.push_back(muPairFactory.particle(transTrk2,  muMass, 
                                                            chi2, ndof, muMassSigma) );
             transMuPairId.push_back(iMuon2 - thePATMuonHandle->begin());
