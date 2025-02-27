@@ -206,9 +206,9 @@ private:
                               const muList_t& arg_MuonPair2 );
 
     // Deal with "multi-candidate" issue
-    static double fitResEval(double arg_massDiff_Jpsi_1, double arg_massErr_Jpsi_1,
-                             double arg_massDiff_Phi, double arg_massErr_Phi,
-                             double arg_massDiff_Ups,    double arg_massErr_Ups   );
+    static double fitResEval(double arg_massDiff_Jpsi, double arg_massErr_Jpsi,
+                             double arg_massDiff_Ups, double arg_massErr_Ups,
+                             double arg_massDiff_Phi,    double arg_massErr_Phi   );
 
     
     // Member data
@@ -272,9 +272,12 @@ private:
 	static constexpr double myPhiMass  = 1.019461, myPhiMassErr    = 0.000020;
 	static constexpr double myMuMass = 0.1056583745;
 	static constexpr double myMuMassErr = 0.0000000023; // From PDG 2024
-	static constexpr double myKaonMass = 0.493677;
+	static constexpr double myKMass = 0.493677; // Kaon mass and error
 	// try
-	static constexpr double myKaonMassErr = 0.00008; // From PDG 2024
+	static constexpr double myKMassErr = 0.000015; // From PDG 2024
+
+    // general restrictions for vtx prob
+    static constexpr double VtxProbCut = 0.01;
 
     // Constructing TTree object [Annotation by Eric Wang, 20240626]
     
@@ -286,7 +289,8 @@ private:
     vector<unsigned int>*   trigRes;
     vector<std::string>*    trigNames;
     vector<unsigned int>*   L1TT;
-    vector<std::string>*    MatchTriggerNames;
+    vector<std::string>*    MatchJpsiTrigNames;
+    vector<std::string>*    MatchUpsTrigNames;
 
     // primary vertices [Annotation by Eric Wang, 20240626]
     float               priVtxX,    priVtxY,    priVtxZ, 
@@ -313,6 +317,7 @@ private:
                         *muIsGoodSoftMuonNewIlse,   *muIsGoodSoftMuonNewIlseMod, 
                         *muIsGoodTightMuon,         *muIsJpsiTrigMatch,         
                         *muIsUpsTrigMatch,          *munMatchedSeg;
+    vector<int>         *muIsJpsiFilterMatch,       *muIsUpsFilterMatch;
     vector<int>         *muIsPatLooseMuon, *muIsPatTightMuon, *muIsPatSoftMuon, *muIsPatMediumMuon;
     vector<int>         *muIsJpsiFilterMatch,       *muIsUpsFilterMatch;
 
@@ -330,36 +335,40 @@ private:
 
     vector<float> *Jpsi_cand_mass_p4, *Jpsi_cand_mass_fit,
                    *Ups_cand_mass_p4,  *Ups_cand_mass_fit;
-   
     // Muons from Jpsi and Upsilon.
-    vector<float> *Jpsi_1_mu_1_Idx, *Jpsi_1_mu_2_Idx, 
-                  *Phi_K_1_Idx, *Phi_K_2_Idx,
-                     *Ups_mu_1_Idx,    *Ups_mu_2_Idx;
-
-    // [J-U-P] To add branches for the reconstructed phi.
+    vector<float> *Jpsi_mu_1_Idx, *Jpsi_mu_2_Idx, 
+                         *Ups_mu_1_Idx, *Ups_mu_2_Idx,
+                             *Phi_K_1_Idx,     *Phi_K_2_Idx;
 
     // Reconstructed Jpsi and Upsilon.
     // Note: Used "vector<T>* a, b" instead of "vector<T> *a, *b"
-    vector<float> *Jpsi_1_mass, *Jpsi_1_massErr, *Jpsi_1_massDiff,
-                  *Phi_mass, *Phi_massErr, *Phi_massDiff,
-                     *Ups_mass,    *Ups_massErr,    *Ups_massDiff ;
+    vector<float> *Jpsi_mass, *Jpsi_massErr, *Jpsi_massDiff,
+                  *Ups_mass, *Ups_massErr, *Ups_massDiff,
+                     *Phi_mass,    *Phi_massErr,    *Phi_massDiff ;
                
-    vector<float> *Jpsi_1_ctau, *Jpsi_1_ctauErr, *Jpsi_1_Chi2, *Jpsi_1_ndof, *Jpsi_1_VtxProb,
-                  *Phi_ctau, *Phi_ctauErr, *Phi_Chi2, *Phi_ndof, *Phi_VtxProb,
-                                                    *Ups_Chi2,    *Ups_ndof,    *Ups_VtxProb;
+    vector<float> *Jpsi_ctau, *Jpsi_ctauErr, *Jpsi_Chi2, *Jpsi_ndof, *Jpsi_VtxProb,
+                  *Ups_ctau, *Ups_ctauErr, *Ups_Chi2, *Ups_ndof, *Ups_VtxProb,
+                  *Phi_ctau, *Phi_ctauErr, *Phi_Chi2,    *Phi_ndof,    *Phi_VtxProb;
                   
-    vector<float> *Jpsi_1_phi, *Jpsi_1_eta, *Jpsi_1_pt,
-                  *Phi_phi, *Phi_eta, *Phi_pt,
-                     *Ups_phi,    *Ups_eta,    *Ups_pt;
+    vector<float> *Jpsi_phi, *Jpsi_eta, *Jpsi_pt,
+                  *Ups_phi, *Ups_eta, *Ups_pt,
+                     *Phi_phi,    *Phi_eta,    *Phi_pt;
                
-    vector<float> *Jpsi_1_px, *Jpsi_1_py, *Jpsi_1_pz,
-                  *Phi_px, *Phi_py, *Phi_pz,
-                     *Ups_px,    *Ups_py,    *Ups_pz;
+    vector<float> *Jpsi_px, *Jpsi_py, *Jpsi_pz,
+                  *Ups_px, *Ups_py, *Ups_pz,
+                     *Phi_px,    *Phi_py,    *Phi_pz;
+
     // Primary vertex reconstructied from Jpsi and Upsilon.              
     vector<float>    *Pri_mass,  *Pri_massErr,
                      *Pri_ctau,  *Pri_ctauErr, *Pri_Chi2, *Pri_ndof, *Pri_VtxProb,
                      *Pri_px,    *Pri_py,    *Pri_pz, 
-                     *Pri_phi,   *Pri_eta,   *Pri_pt;  
+                     *Pri_phi,   *Pri_eta,   *Pri_pt;
+
+    // Branches for the supposed kaon tracks from Phi decay.
+    vector<float>        *Phi_K_1_px, *Phi_K_1_py, *Phi_K_1_pz,
+                         *Phi_K_2_px, *Phi_K_2_py, *Phi_K_2_pz,
+                         *Phi_K_1_eta, *Phi_K_1_phi, *Phi_K_1_pt,
+                         *Phi_K_2_eta, *Phi_K_2_phi, *Phi_K_2_pt;  
 
     vector<float>        *Phi_K_1_px, *Phi_K_1_py, *Phi_K_1_pz,
                          *Phi_K_2_px, *Phi_K_2_py, *Phi_K_2_pz,
@@ -437,10 +446,10 @@ private:
     *Match_pi2pz; 
 
     // vector<float> 
-    //     *Match_Jpsi_1_mu1px, *Match_Jpsi_1_mu1py, *Match_Jpsi1_mu1pz,
-    //     *Match_Jpsi_1_mu2px, *Match_Jpsi_1_mu2py, *Match_Jpsi1_mu2pz,
-    //     *Match_Jpsi_2_mu1px, *Match_Jpsi_2_mu1py, *Match_Jpsi2_mu1pz,
-    //     *Match_Jpsi_2_mu2px, *Match_Jpsi_2_mu2py, *Match_Jpsi2_mu2pz,
+    //     *Match_Jpsi_mu1px, *Match_Jpsi_mu1py, *Match_Jpsi1_mu1pz,
+    //     *Match_Jpsi_mu2px, *Match_Jpsi_mu2py, *Match_Jpsi1_mu2pz,
+    //     *Match_Ups_mu1px, *Match_Ups_mu1py, *Match_Jpsi2_mu1pz,
+    //     *Match_Ups_mu2px, *Match_Ups_mu2py, *Match_Jpsi2_mu2pz,
     //     *Match_Ups_mu1px,    *Match_Ups_mu1py,    *Match_Ups_mu1pz,
     //     *Match_Ups_mu2px,    *Match_Ups_mu2py,    *Match_Ups_mu2pz;
 

@@ -5,8 +5,13 @@ ivars = VarParsing.VarParsing('analysis')
 ivars.inputFiles=(
 #'file:BPHSkim_UL.root',
 #'/store/user/zhenhu/MuOnia/BPHSkim-v3-Run2018D-12Nov2019_UL2018-v1/210321_010747/0000/BPHSkim_UL_556.root',
+#'/store/data/Run2023B/ParkingDoubleMuonLowMass0/MINIAOD/PromptReco-v1/000/366/406/00000/7a0c3c42-f92e-4d1d-952c-e13f90b0a8e3.root',
+#'/store/data/Run2023B/ParkingDoubleMuonLowMass0/MINIAOD/PromptReco-v1/000/366/403/00000/5be75e01-f0e6-4690-ba57-da041d5437a0.root'
+#'/store/data/Run2023B/ParkingDoubleMuonLowMass0/MINIAOD/PromptReco-v1/000/367/079/00000/e20ba4ff-963d-4d1e-8933-a5e9ca8f9559.root'
 #'/store/data/Run2023D/ParkingDoubleMuonLowMass1/MINIAOD/PromptReco-v1/000/370/093/00000/9b491ed3-c0e4-4870-be7e-f93d79a5ae01.root'
-'/store/data/Run2023C/ParkingDoubleMuonLowMass0/MINIAOD/PromptReco-v1/000/367/095/00000/9d4e4cde-7b29-420a-867b-4329d5acb1eb.root'
+'/store/data/Run2023D/ParkingDoubleMuonLowMass0/MINIAOD/PromptReco-v2/000/370/665/00000/fcb91ff5-a0ed-43d0-91bc-9e0286c0a8fb.root'
+#'/store/data/Run2023D/ParkingDoubleMuonLowMass3/MINIAOD/22Sep2023_v2-v1/60000/02862e37-eb36-4b7e-82c8-648274e03648.root'
+#'/store/data/Run2023B/ParkingDoubleMuonLowMass0/MINIAOD/PromptReco-v1/000/366/442/00000/77993198-8548-4532-83bc-7b2a8863c9b9.root'
 )
 
 ivars.outputFile='mymultilep.root'
@@ -78,10 +83,12 @@ else:
     #process.GlobalTag = GlobalTag(process.GlobalTag, '132X_dataRun3_Prompt_v4', '')
     process.GlobalTag = GlobalTag(process.GlobalTag, '130X_dataRun3_PromptAnalysis_v1', '') 
 ### PoolSource will be ignored when running crab
+# 19Jan2025 chiw ("Eric"): The annotation above is SUS! Trying to remove the "eventsToProcess".
 process.source = cms.Source("PoolSource",
     skipEvents=cms.untracked.uint32(0),
 	fileNames = cms.untracked.vstring(ivars.inputFiles),
 	#eventsToProcess = cms.untracked.VEventRange("367079:791559619-367079:MAX")
+    #eventsToProcess = cms.untracked.VEventRange("370093:0-370093:MAX")
 	#eventsToProcess = cms.untracked.VEventRange("367079:970546777")
 )
 
@@ -271,8 +278,10 @@ process.mkcands = cms.EDAnalyzer('MultiLepPAT',
         addXlessPrimaryVertex = cms.untracked.bool(True),
         Debug_Output = cms.untracked.bool(False),
 
-TriggersForJpsi = cms.untracked.vstring("HLT_Dimuon0_Jpsi3p5_Muon2_v", "HLT_DoubleMu4_3_LowMass_v"),
- FiltersForJpsi = cms.untracked.vstring("hltVertexmumuFilterJpsiMuon3p5", "hltDoubleMu43LowMassL3Filtered"),
+TriggersForJpsi = cms.untracked.vstring("HLT_Dimuon0_Jpsi3p5_Muon2_v",
+										"HLT_DoubleMu4_3_LowMass_v"),
+ FiltersForJpsi = cms.untracked.vstring("hltVertexmumuFilterJpsiMuon3p5",
+										"hltDisplacedmumuFilterDoubleMu43LowMass"),
 
 #TriggersForUpsilon = cms.untracked.vstring("HLT_Dimuon0_Upsilon_Muon_v18","HLT_Dimuon0_Upsilon_Muon_v17","HLT_Dimuon0_Upsilon_Muon_v16","HLT_Dimuon0_Upsilon_Muon_v15","HLT_Dimuon0_Upsilon_Muon_v14","HLT_Dimuon0_Upsilon_Muon_v13","HLT_Dimuon0_Upsilon_Muon_v12","HLT_Dimuon0_Upsilon_Muon_v11","HLT_Dimuon0_Upsilon_Muon_v10","HLT_Dimuon0_Upsilon_Muon_v9","HLT_Dimuon0_Upsilon_Muon_v8","HLT_Dimuon0_Upsilon_Muon_v7","HLT_Dimuon0_Upsilon_Muon_v6","HLT_Dimuon0_Upsilon_Muon_v5","HLT_Dimuon0_Upsilon_Muon_v4","HLT_Dimuon0_Upsilon_Muon_v3","HLT_Dimuon0_Upsilon_Muon_v2","HLT_Dimuon0_Upsilon_Muon_v1"),
 #FiltersForUpsilon = cms.untracked.vstring("hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon","hltVertexmumuFilterUpsilonMuon"),
