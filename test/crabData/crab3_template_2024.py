@@ -7,7 +7,7 @@ config.General.transferOutputs = True
 config.General.requestName = 'TaskTag'
 
 config.section_('JobType')
-config.JobType.psetName = '../runMultiLepPAT_dataRun3_miniAOD.py'
+config.JobType.psetName = '../runMultiLepPAT_dataRun3_miniAOD_Run2024.py'
 config.JobType.pluginName = 'Analysis' #or 'PrivateMC' for Monte Calo jobs
 config.JobType.outputFiles = ['mymultilep.root']
 config.JobType.allowUndistributedCMSSW = True
@@ -17,7 +17,8 @@ config.Data.inputDataset = 'DataSet'
 config.Data.inputDBS = 'global'
 config.Data.unitsPerJob = 20
 config.Data.splitting = 'LumiBased'
-config.Data.outLFNDirBase = '/store/user/qinju/jpsiPsi2S/rootNtuple/' #LFN=Logical File Name
+config.Data.lumiMask = '/eos/user/c/cmsdqm/www/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Muon.json'
+config.Data.outLFNDirBase = '/store/user/chiw/JpsiJpsiUps/rootNtuple/' #LFN=Logical File Name
 config.Data.outputDatasetTag = 'TaskTag'
 
 config.section_('User')

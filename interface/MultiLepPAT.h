@@ -31,7 +31,6 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h" // xining MINIAODtest
 
 // user include files
-#include "../interface/VertexReProducer.h"
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
@@ -181,12 +180,24 @@ private:
                                  const MagneticField&                        arg_bField,
                                  const TrackRef arg_Trk1,     const TrackRef arg_Trk2       );
 
+    // Fitting particles to a vertex, only requiring a "valid" fit.
     static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults);
     static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults,
                                const string&                               arg_Message);
     static bool particlesToVtx(RefCountedKinematicTree&                    arg_VertexFitTree,
                                const vector<RefCountedKinematicParticle>&  arg_Muons,
                                const string&                               arg_Message);
+
+    // Fitting particles to a vertex, requiring some vertex probability cut.
+    static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults,
+                               const double&                               arg_VtxProbCut);
+    static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults,
+                               const string&                               arg_Message,
+                               const double&                               arg_VtxProbCut);
+    static bool particlesToVtx(RefCountedKinematicTree&                    arg_VertexFitTree,
+                               const vector<RefCountedKinematicParticle>&  arg_Muons,
+                               const string&                               arg_Message,
+                               const double&                               arg_VtxProbCut);
 
     static bool extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
                               RefCountedKinematicParticle& res_Part,
@@ -210,6 +221,8 @@ private:
                              double arg_massDiff_Jpsi_2, double arg_massErr_Jpsi_2,
                              double arg_massDiff_Ups,    double arg_massErr_Ups   );
 
+    void DisplayTempBranchInfo() const;
+    void Relink();
     
     // Member data
 
@@ -266,6 +279,8 @@ private:
     bool Debug_;
     double Chi_Track_;
 
+    double OniaDecayVtxProbCut_;
+
     // PDG 2023
 	static constexpr double myJpsiMass = 3.0969,   myJpsiMassErr = 0.00004;
 	static constexpr double myUpsMass  = 9.4603,   myUpsMassErr  = 0.0003;
@@ -286,7 +301,9 @@ private:
     vector<unsigned int>*   trigRes;
     vector<std::string>*    trigNames;
     vector<unsigned int>*   L1TT;
-    vector<std::string>*    MatchTriggerNames;
+    vector<std::string>*    MatchJpsiTrigNames;
+    vector<std::string>*    MatchUpsTrigNames;
+
 
     // primary vertices [Annotation by Eric Wang, 20240626]
     float               priVtxX,    priVtxY,    priVtxZ, 
@@ -313,6 +330,7 @@ private:
                         *muIsGoodSoftMuonNewIlse,   *muIsGoodSoftMuonNewIlseMod, 
                         *muIsGoodTightMuon,         *muIsJpsiTrigMatch,         
                         *muIsUpsTrigMatch,          *munMatchedSeg;
+    vector<int>         *muIsJpsiFilterMatch,       *muIsUpsFilterMatch;
     vector<int>         *muIsPatLooseMuon, *muIsPatTightMuon, *muIsPatSoftMuon, *muIsPatMediumMuon;
     
     //for Maksat trigger match [Annotation by Eric Wang, 20240626]
@@ -327,13 +345,16 @@ private:
     vector<float>  *mupulldXdZ_pos_ArbST, *mupulldYdZ_pos_ArbST;
     vector<float>  *mupulldXdZ_pos_noArb_any, *mupulldYdZ_pos_noArb_any;
 
+    // Muon pairs from Jpsi and Upsilon [Annotation by Eric Wang, 20240626]
+    vector<float> *Jpsi_cand_mass_p4, *Jpsi_cand_mass_fit,
+                   *Ups_cand_mass_p4,  *Ups_cand_mass_fit;
+
     // Muons from Jpsi and Upsilon.
     vector<float> *Jpsi_1_mu_1_Idx, *Jpsi_1_mu_2_Idx, 
                   *Jpsi_2_mu_1_Idx, *Jpsi_2_mu_2_Idx,
                      *Ups_mu_1_Idx,    *Ups_mu_2_Idx;
 
     // Reconstructed Jpsi and Upsilon.
-    // Note: Used "vector<T>* a, b" instead of "vector<T> *a, *b"
     vector<float> *Jpsi_1_mass, *Jpsi_1_massErr, *Jpsi_1_massDiff,
                   *Jpsi_2_mass, *Jpsi_2_massErr, *Jpsi_2_massDiff,
                      *Ups_mass,    *Ups_massErr,    *Ups_massDiff ;
