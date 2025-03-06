@@ -187,6 +187,16 @@ private:
     static bool particlesToVtx(RefCountedKinematicTree&                    arg_VertexFitTree,
                                const vector<RefCountedKinematicParticle>&  arg_Muons,
                                const string&                               arg_Message);
+    
+    static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults,
+                                const double&                               arg_VtxProbCut);
+    static bool particlesToVtx(const vector<RefCountedKinematicParticle>&  arg_MuonResults,
+                                const string&                               arg_Message,
+                                const double&                               arg_VtxProbCut);
+    static bool particlesToVtx(RefCountedKinematicTree&                    arg_VertexFitTree,
+                                const vector<RefCountedKinematicParticle>&  arg_Muons,
+                                const string&                               arg_Message,
+                                const double&                               arg_VtxProbCut);
 
     static bool extractFitRes(RefCountedKinematicTree&     arg_VtxTree,
                               RefCountedKinematicParticle& res_Part,
@@ -265,6 +275,7 @@ private:
     int  MatchingTriggerResult[50];
     bool Debug_;
     double Chi_Track_;
+    double OniaDecayVtxProbCut_;
 
     // PDG 2023
 	static constexpr double myJpsiMass = 3.0969,   myJpsiMassErr = 0.00004;
@@ -275,9 +286,6 @@ private:
 	static constexpr double myKMass = 0.493677; // Kaon mass and error
 	// try
 	static constexpr double myKMassErr = 0.000015; // From PDG 2024
-
-    // general restrictions for vtx prob
-    static constexpr double VtxProbCut = 0.01;
 
     // Constructing TTree object [Annotation by Eric Wang, 20240626]
     
@@ -319,7 +327,6 @@ private:
                         *muIsUpsTrigMatch,          *munMatchedSeg;
     vector<int>         *muIsJpsiFilterMatch,       *muIsUpsFilterMatch;
     vector<int>         *muIsPatLooseMuon, *muIsPatTightMuon, *muIsPatSoftMuon, *muIsPatMediumMuon;
-    vector<int>         *muIsJpsiFilterMatch,       *muIsUpsFilterMatch;
 
     //for Maksat trigger match [Annotation by Eric Wang, 20240626]
     vector<int> *muUpsVrtxMatch, *muL3TriggerMatch;
@@ -370,10 +377,6 @@ private:
                          *Phi_K_1_eta, *Phi_K_1_phi, *Phi_K_1_pt,
                          *Phi_K_2_eta, *Phi_K_2_phi, *Phi_K_2_pt;  
 
-    vector<float>        *Phi_K_1_px, *Phi_K_1_py, *Phi_K_1_pz,
-                         *Phi_K_2_px, *Phi_K_2_py, *Phi_K_2_pz,
-                         *Phi_K_1_eta, *Phi_K_1_phi, *Phi_K_1_pt,
-                         *Phi_K_2_eta, *Phi_K_2_phi, *Phi_K_2_pt;  
 
     //doMC
     vector<float> 
